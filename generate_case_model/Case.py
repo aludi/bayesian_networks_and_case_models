@@ -10,25 +10,12 @@ class Case:
         self.corresponding_scenario = scn
     '''
 
-    def __init__(self, name, ev_dict_case, area_dict_case, all_ev):
+    def __init__(self, name, ev_dict_case, scn_area, total_area_case, all_ev, scenario_name):
         self.name = name
         self.all_ev = all_ev
-        #self.total_dict_case = dict_case
         self.dict_evidence_value = ev_dict_case
-        self.dict_area_value = area_dict_case
-
-        total_area_case = 1
-        for key in ev_dict_case.keys():
-            print(key.name, ev_dict_case[key])
-            self.scenario = key.get_scenario()
-            area_val = self.dict_evidence_value[key]
-            if 'scn' in key.name:
-                self.width = area_val
-            if area_val is None:
-                total_area_case = total_area_case*1
-            else:
-                total_area_case = total_area_case*area_val
-
+        self.scn_width = scn_area
+        self.scenario = scenario_name
         self.area_case = total_area_case
         self.list_known_evidence = [self.scenario]
 
@@ -52,7 +39,7 @@ class Case:
         return self.scenario
 
     def get_case_width(self):
-        return self.width
+        return self.scn_width
 
     def get_case_area(self):
         return self.area_case
@@ -67,7 +54,7 @@ class Case:
     # case area is determined by ?? -> impact of evidence on the case. but this is also determined
     # so we can easily find case height always
     def get_case_height(self):
-        return self.area_case/self.width
+        return self.area_case/self.scn_width
 
-    def get_case_prop_areas_dict(self):
-        return self.dict_area_value
+    #def get_case_prop_areas_dict(self):
+    #    return self.dict_area_value

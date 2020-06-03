@@ -10,6 +10,7 @@ import generate_case_model.Case as single_case
 class CaseModel:
     def __init__(self, case_list):
         self.cases = case_list
+        self.old_cases = []
         self.evidence = {}
         self.caseTree = None
         self.dict_of_nodes = {}
@@ -22,11 +23,13 @@ class CaseModel:
         return self.dict_of_all_ev_nodes
 
     def print_case_model(self):
+        pass
+        '''
         for case in self.cases:
             print(case.name, case.get_case_area())
-            for node in case.dict_area_value.keys():
-                print("\t", node.name, node.tag, case.dict_evidence_value[node], case.dict_area_value[node])
-
+            for node in case.dict_evidence_value.keys():
+                print("\t", node.name, node.tag, case.dict_evidence_value[node], case.area_case)
+        '''
     def add_case(self, case):
         self.cases.append(case)
 
@@ -58,27 +61,34 @@ class CaseModel:
         for case in self.cases:
             scn_case = case.scenario
             save_key = "evidence_not_in_case"
+
             #print(case.dict_evidence_value.keys())
-            for key in case.all_ev.keys():
-                #print(key.name)
-                if key.name == entry:
+
+            for key in case.all_ev:
+                if str(key) == entry:
                     save_key = key
 
 
-            negation_dict_ev = case.dict_evidence_value
-            negation_dict_area = case.dict_area_value
+            scenario_of_new_case = case.scenario
+
+            #print("\t\t Dict of case", case.dict_evidence_value)
+            print(case.all_ev)
+            new_case_dict_ev = case.all_ev
+            negation_dict_ev = case.all_ev
+            negation_case_area = case.area_case
+            negation_scenario_width = case.scn_width
             negation_dict_all_ev = case.all_ev
 
 
-            case.dict_evidence_value[save_key] = truth_value
-            case.all_ev[save_key] = truth_value
+            #case.dict_evidence_value[save_key] = truth_value
+            #case.all_ev[save_key] = truth_value
 
             index = int(scn_case[-1])
             posterior_of_scn = ie.posterior('constraint')
-            case.area_case = posterior_of_scn[index]*posterior_entry[1]
-            print("AREA CALC", posterior_of_scn[index], posterior_entry[1], case.area_case)
-            case.width = posterior_of_scn[index]
-            case.set_case_area(case.area_case)
+            #case.area_case = posterior_of_scn[index]*posterior_entry[1]
+            #print("AREA CALC", posterior_of_scn[index], posterior_entry[1], case.area_case)
+            #case.width = posterior_of_scn[index]
+            #case.set_case_area(case.area_case)
 
             # then, create a new case with the negation (as it were)
             if truth_value == 1:
@@ -86,25 +96,55 @@ class CaseModel:
             else:
                 neg_truth_value = 1
             #if save_key != "evidence_not_in_case":
+
+            print("NEGATION DICT EV BEFOR:")
+            for key in negation_dict_ev:
+                print(key.name, negation_dict_ev[key])
+
+
+            new_case_dict_ev[save_key] = truth_value
+
+
             negation_dict_ev[save_key] = neg_truth_value
+            negation_case_area = posterior_of_scn[index]*posterior_entry[0]
 
-            case_negation = single_case.Case("None", negation_dict_ev, negation_dict_area, negation_dict_all_ev)
-            case_negation.improve_name_list(entry, neg_truth_value, flag)
-            case_negation.area_case = posterior_of_scn[index]*posterior_entry[0]
-            print("NEG AREA CALC", posterior_of_scn[index], posterior_entry[0], case_negation.area_case)
+            print("NEGATION DICT EV AFTER:", negation_dict_ev)
+            for key in negation_dict_ev:
+                print(type(key), key)
+                print(key.name, negation_dict_ev[key])
 
-            case_negation.width = posterior_of_scn[index]
-            list_1.append(case_negation)
-            case_negation.set_case_area(case_negation.area_case)
-
+            case = single_case.Case("None", new_case_dict_ev, case.scn_width, case.area_case, case.all_ev, scenario_of_new_case)
             case.improve_name_list(entry, truth_value, flag)
+            case.area_case = posterior_of_scn[index] * posterior_entry[1]
 
+            case_negation = single_case.Case("None", negation_dict_ev, negation_scenario_width, negation_case_area, negation_dict_all_ev, scenario_of_new_case)
+            #case_negation.improve_name_list(entry, neg_truth_value, flag)
+            case_negation.area_case = posterior_of_scn[index]*posterior_entry[0]
+            #print("NEG AREA CALC", posterior_of_scn[index], posterior_entry[0], case_negation.area_case)
+
+            #case_negation.width = posterior_of_scn[index]
+            list_1.append(case)
+            list_1.append(case_negation)
+            #case_negation.set_case_area(case_negation.area_case)
+
+            #case.improve_name_list(entry, truth_value, flag)
+
+
+        self.old_cases.append(self.cases)
+        self.cases = []
 
         for item in list_1:
             self.add_case(item)
 
         #self.update_tree1(entry, truth_value, ie)
         #self.recalculate_area_for_plot()
+        '''
+        print("CASES: ")
+        for case in self.cases:
+            print("\t", case.name, case.scenario, case.area_case, case.scn_width)
+            for key in case.dict_evidence_value.keys():
+                print(key, case.dict_evidence_value[key])
+        '''
 
 
     '''

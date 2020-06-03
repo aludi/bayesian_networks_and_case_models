@@ -178,6 +178,9 @@ def recursing_children_for_dict(parent, ie, scn_dict_ev, scn_dict_area):
                 node = prop.Prop(good_name, parent=parent)
                 node.add_scenario(parent.get_scenario())
                 scn_dict_ev[node] = None
+                print(type(node))
+                for item in scn_dict_ev.keys():
+                    print(type(item))
                 scn_dict_area[node] = None
                 recursing_children_for_dict(node, ie, scn_dict_ev, scn_dict_area)
             else:
@@ -209,9 +212,11 @@ for x in bn.names():
         prior_on_scenarios = ie.posterior('constraint').tolist()
         index_in_constraint_table = node_name[-1]           # this is unusable in practice TODO: find scenarios by name in constraint table
         prior_scenario_value = prior_on_scenarios[int(index_in_constraint_table)]
+        #print("prior scenario value: ", prior_scenario_value)
         node_atom = prop.Prop(node_name, prior_scenario_value, truth_value=1, tag="SCENARIO")
-        print(node_name, prior_scenario_value)
+        #print(node_name, prior_scenario_value)
         node_atom.add_scenario(node_name)
+        #print(type(node_atom))
         list_of_scenarios.append(node_atom)
     division = len(bn.variable(x).domain()) - 3  # - <, , , >, # check len q, if q > 5, then not binary (<0,1>).
     caseModelDomainSpace = caseModelDomainSpace / division
@@ -222,42 +227,64 @@ for x in bn.names():
         dict_of_names[node_name] = -1  # -1 means "not evidence set"
         new_case = (dict_of_names, area_new)
         cases.append(new_case)
-    print(cases)
+    #print(cases)
 
 root_arg = prop.Prop("Root", 1, tag="SPACE")
 scenario_dict_ev = {}
 scenario_dict_area = {}
 total_ev_dict = {}
 #evidence_dict['constraint'] = [0, 1, 1]
-#print(list_of_scenarios)
-for scenario in list_of_scenarios:
-    new_dict_ev = {}
-    new_dict_area = {}
 
-    new_dict_ev[scenario] = scenario.truth_value
-    new_dict_area[scenario] = scenario.area
+case_list = []
+
+#print("list of scenarios", list_of_scenarios)
+for scenario in list_of_scenarios:
+    #print(type(scenario))
+    print(scenario.name, scenario.truth_value)
+    new_dict_ev = {scenario: scenario.truth_value}
+    new_dict_area = {scenario: scenario.area}
+
+    #new_dict_ev[scenario] = scenario.truth_value
+    #new_dict_area[scenario] = scenario.area
 
     new_dict_ev, new_dict_area = recursing_children_for_dict(scenario, ie, new_dict_ev, new_dict_area)
-    scenario_dict_key = scenario.name
+    scenario_dict_key = scenario
     scenario_dict_ev[scenario_dict_key] = new_dict_ev
-    scenario_dict_area[scenario_dict_key] = new_dict_area
+    #scenario_dict_area[scenario_dict_key] = new_dict_area
     total_ev_dict = {**total_ev_dict,  **scenario_dict_ev[scenario_dict_key]}
+    #print(total_ev_dict)
 
+    case_area = 1
+    #print(scenario.area, case_area)
+    case = single_case.Case(scenario.name, new_dict_ev, scenario.area, scenario.area, total_ev_dict, scenario.name)
+    case_list.append(case)
+
+    #print("\t AREA CASE", case.area_case)
     #for pre, fill, node in RenderTree(scenario):
     #    print("%s%s %s %s  %s" % (pre, node.name, node.area, node.truth_value, node.scenario))
     #scenario.parent = root_arg
 #print(scenario_dict)
 
-case_list = []
-for key in scenario_dict_ev.keys():
-    case = single_case.Case(key, scenario_dict_ev[key], scenario_dict_area[key], total_ev_dict)
-    case_list.append(case)
+print("TOTAL EV DICT")
+for key in total_ev_dict:
+    print(key.name, total_ev_dict[key])
+
+
 
 
 
 # no evidence added: only two cases: scn1 and scn2 with their respective priors
 
 caseModel = case_model.CaseModel(case_list)
+for case in caseModel.cases:
+    case.dict_evidence_value = total_ev_dict
+'''
+print("CASES: ")
+for case in caseModel.cases:
+    print("\t", case.name, case.scenario, case.area_case, case.scn_width, case.dict_evidence_value)
+    #for key in case.dict_evidence_value.keys():
+    #    print(key.name)
+'''
 caseModel.set_dict_of_all_ev_nodes(total_ev_dict)
 caseModel.evidence['constraint'] = [0, 1, 1]
 caseModel.print_case_model()
