@@ -47,6 +47,10 @@ class Case:
     def set_case_area(self, case_area_val):
         self.area_case = case_area_val
 
+    def update_dict(self, dict_new):
+        self.all_ev = dict_new
+        self.dict_evidence_value = dict_new
+
 
     # case width * case height = case area
     # this must always be true

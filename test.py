@@ -177,10 +177,9 @@ def recursing_children_for_dict(parent, ie, scn_dict_ev, scn_dict_area):
             if good_name != 'constraint':
                 node = prop.Prop(good_name, parent=parent)
                 node.add_scenario(parent.get_scenario())
-                scn_dict_ev[node] = None
+                scn_dict_ev[node.name] = None
                 print(type(node))
-                for item in scn_dict_ev.keys():
-                    print(type(item))
+
                 scn_dict_area[node] = None
                 recursing_children_for_dict(node, ie, scn_dict_ev, scn_dict_area)
             else:
@@ -240,19 +239,19 @@ case_list = []
 #print("list of scenarios", list_of_scenarios)
 for scenario in list_of_scenarios:
     #print(type(scenario))
-    print(scenario.name, scenario.truth_value)
-    new_dict_ev = {scenario: scenario.truth_value}
-    new_dict_area = {scenario: scenario.area}
+    #print(scenario.name, scenario.truth_value)
+    new_dict_ev = {scenario.name: scenario.truth_value}
+    new_dict_area = {scenario.name: scenario.area}
 
     #new_dict_ev[scenario] = scenario.truth_value
     #new_dict_area[scenario] = scenario.area
 
     new_dict_ev, new_dict_area = recursing_children_for_dict(scenario, ie, new_dict_ev, new_dict_area)
-    scenario_dict_key = scenario
+    scenario_dict_key = scenario.name
     scenario_dict_ev[scenario_dict_key] = new_dict_ev
     #scenario_dict_area[scenario_dict_key] = new_dict_area
     total_ev_dict = {**total_ev_dict,  **scenario_dict_ev[scenario_dict_key]}
-    #print(total_ev_dict)
+    #print("total ev dings", total_ev_dict)
 
     case_area = 1
     #print(scenario.area, case_area)
@@ -267,7 +266,7 @@ for scenario in list_of_scenarios:
 
 print("TOTAL EV DICT")
 for key in total_ev_dict:
-    print(key.name, total_ev_dict[key])
+    print(key, total_ev_dict[key])
 
 
 
@@ -276,8 +275,25 @@ for key in total_ev_dict:
 # no evidence added: only two cases: scn1 and scn2 with their respective priors
 
 caseModel = case_model.CaseModel(case_list)
+dict_case = total_ev_dict
 for case in caseModel.cases:
-    case.dict_evidence_value = total_ev_dict
+    print(dict_case)
+    scn_case = case.scenario
+    print(scn_case)
+    for key in dict_case:
+        if key == scn_case:
+            dict_case[key] = 1
+        else:
+            dict_case[key] = None
+    print(dict_case)
+    new_dict = dict_case
+    case.update_dict(new_dict)
+
+
+for case in caseModel.cases:
+    print(case.dict_evidence_value)
+    print(case.all_ev)
+
 '''
 print("CASES: ")
 for case in caseModel.cases:
@@ -303,7 +319,7 @@ caseModel.add_evidence_scenario('testEv3', 1, ie)
 caseModel.print_case_model()
 caseModel.get_figure_scenario_based()
 
-caseModel.add_evidence_scenario('testEv2', 1, ie)
+'''caseModel.add_evidence_scenario('testEv2', 1, ie)
 caseModel.print_case_model()
 caseModel.get_figure_scenario_based()
-
+'''

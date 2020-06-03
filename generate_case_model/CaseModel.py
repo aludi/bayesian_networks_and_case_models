@@ -61,6 +61,7 @@ class CaseModel:
         for case in self.cases:
             scn_case = case.scenario
             save_key = "evidence_not_in_case"
+            #print("SCENARIO CASE", scn_case)
 
             #print(case.dict_evidence_value.keys())
 
@@ -72,7 +73,7 @@ class CaseModel:
             scenario_of_new_case = case.scenario
 
             #print("\t\t Dict of case", case.dict_evidence_value)
-            print(case.all_ev)
+            #print(case.all_ev)
             new_case_dict_ev = case.all_ev
             negation_dict_ev = case.all_ev
             negation_case_area = case.area_case
@@ -97,9 +98,9 @@ class CaseModel:
                 neg_truth_value = 1
             #if save_key != "evidence_not_in_case":
 
-            print("NEGATION DICT EV BEFOR:")
+            '''print("NEGATION DICT EV BEFOR:")
             for key in negation_dict_ev:
-                print(key.name, negation_dict_ev[key])
+                print(key, negation_dict_ev[key])'''
 
 
             new_case_dict_ev[save_key] = truth_value
@@ -108,10 +109,9 @@ class CaseModel:
             negation_dict_ev[save_key] = neg_truth_value
             negation_case_area = posterior_of_scn[index]*posterior_entry[0]
 
-            print("NEGATION DICT EV AFTER:", negation_dict_ev)
+            '''print("NEGATION DICT EV AFTER:", negation_dict_ev)
             for key in negation_dict_ev:
-                print(type(key), key)
-                print(key.name, negation_dict_ev[key])
+                print(key, negation_dict_ev[key])'''
 
             case = single_case.Case("None", new_case_dict_ev, case.scn_width, case.area_case, case.all_ev, scenario_of_new_case)
             case.improve_name_list(entry, truth_value, flag)
@@ -243,7 +243,7 @@ class CaseModel:
         scn = None
         flag = 0
         for case in self.cases:
-            print("IN FIG", case.name, case.area_case)
+            print("IN FIG", case.name, case.area_case, case.dict_evidence_value)
             # if scenario changes, stack-height must reset
             if case.scenario != scn:
                 stack = 0
@@ -264,6 +264,7 @@ class CaseModel:
             if flag == 1:
                 width = width_of_case + width
                 flag = 0
+        print("\n")
         figure.show()
 
 
