@@ -280,7 +280,7 @@ caseModel.evidence['constraint'] = [0, 1, 1]
 caseModel.print_case_model()
 caseModel.get_figure_scenario_based()
 
-caseModel.add_evidence_scenario('testEv1', 0, ie)
+caseModel.add_evidence_scenario('testEv1', 1, ie)
 caseModel.print_case_model()
 caseModel.get_figure_scenario_based()
 
@@ -289,6 +289,10 @@ caseModel.add_evidence_scenario('testEv1', 0, ie)
 caseModel.print_case_model()
 caseModel.get_figure_scenario_based()
 
+
+caseModel.add_evidence_scenario('testEv1', 1, ie)
+caseModel.print_case_model()
+caseModel.get_figure_scenario_based()
 
 '''
 caseModel.add_evidence_scenario('testEv2', 0, ie)

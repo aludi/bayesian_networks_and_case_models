@@ -48,30 +48,48 @@ class CaseModel:
 
     def add_evidence_scenario(self, entry, truth_value, ie):
 
-        if entry in self.evidence.keys() and self.evidence[entry] != truth_value:
-            flag = 1
+        if entry in self.evidence.keys():
+            if self.evidence[entry] != truth_value:
+                flag = 1
+            if self.evidence[entry] == truth_value:
+                print("IN FLAG 2")
+                flag = 2
         else:
             flag = 0
+        ie.setEvidence({})
+        ie.makeInference()
         self.evidence[entry] = truth_value
         posterior_entry = ie.posterior(entry).tolist()
         ie.setEvidence(self.evidence)
         posterior_of_scn = ie.posterior('constraint')
-        print(posterior_entry)
+        print(ie.posterior(entry))
         print(posterior_of_scn)
         if flag == 1:
-            self.change_evidence_scenario(posterior_entry, posterior_of_scn)
-        else:
+            self.change_evidence_scenario(posterior_entry, posterior_of_scn, entry, truth_value)
+        elif flag == 0:
             self.add_new_evidence_scenario(entry, truth_value, posterior_entry, posterior_of_scn)
 
 
 
-    def change_evidence_scenario(self, posterior_entry, posterior_of_scn):
+    def change_evidence_scenario(self, posterior_entry, posterior_of_scn, entry, new_truth_value):
         print("IN HERE")
         for case in self.cases:
             old_case_ev_dict = dict(case.all_ev)
             index = int(case.scenario[-1])
+
             print("CHAINGING EVIGENDE")
             print(posterior_entry, posterior_of_scn)
+            print(case.area_case)
+            print("OLD CASE")
+            print(posterior_of_scn[index], posterior_entry[1], posterior_entry[0])
+            print(posterior_of_scn[index] * posterior_entry[1])
+            print(posterior_of_scn[index] * posterior_entry[0])
+            if old_case_ev_dict[entry] == new_truth_value:      # the case where the thing is negaated. We only need to update and swap around the posteriors...
+                case.area_case = posterior_entry[0]*posterior_of_scn[index]
+            else:
+                case.area_case = posterior_entry[1]*posterior_of_scn[index]
+            case.scn_width = posterior_of_scn[index]
+
 
     def add_new_evidence_scenario(self, entry, truth_value, posterior_entry, posterior_of_scn):
         list_1 = []
@@ -89,7 +107,12 @@ class CaseModel:
             new_case_dict_ev[entry] = truth_value
             negation_dict_ev[entry] = neg_truth_value
 
-            #print("OLD CASE", case.area_case, case.all_ev)
+            print("OLD CASE")
+            print(posterior_entry)
+            print(posterior_of_scn[index], posterior_entry[1], posterior_entry[0])
+            print(posterior_of_scn[index]*posterior_entry[1])
+            print(posterior_of_scn[index]*posterior_entry[0])
+
             new_case = single_case.Case("None", dict(new_case_dict_ev), new_width, posterior_of_scn[index] * posterior_entry[1], dict(new_case_dict_ev), case.scenario)
             case_negation = single_case.Case("None", dict(negation_dict_ev), new_width, posterior_of_scn[index]*posterior_entry[0], dict(negation_dict_ev), case.scenario)
 

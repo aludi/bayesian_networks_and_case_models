@@ -53,6 +53,7 @@ class Case:
         return
 
     def collect_known_evidence(self):
+        self.list_known_evidence = []
         dict_of_evidence = self.all_ev
         for key in dict_of_evidence:
             if dict_of_evidence[key] == 1:
