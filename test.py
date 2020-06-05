@@ -229,41 +229,19 @@ root_arg = prop.Prop("Root", 1, tag="SPACE")
 scenario_dict_ev = {}
 scenario_dict_area = {}
 total_ev_dict = {}
-#evidence_dict['constraint'] = [0, 1, 1]
 
 case_list = []
 
-#print("list of scenarios", list_of_scenarios)
 for scenario in list_of_scenarios:
-    #print(type(scenario))
-    #print(scenario.name, scenario.truth_value)
     new_dict_ev = {scenario.name: scenario.truth_value}
     new_dict_area = {scenario.name: scenario.area}
-
-    #new_dict_ev[scenario] = scenario.truth_value
-    #new_dict_area[scenario] = scenario.area
-
     new_dict_ev, new_dict_area = recursing_children_for_dict(scenario, ie, new_dict_ev, new_dict_area)
     scenario_dict_key = scenario.name
     scenario_dict_ev[scenario_dict_key] = new_dict_ev
-    #scenario_dict_area[scenario_dict_key] = new_dict_area
     total_ev_dict = {**total_ev_dict,  **scenario_dict_ev[scenario_dict_key]}
-    #print("total ev dings", total_ev_dict)
-
     case_area = 1
-    #print(scenario.area, case_area)
     case = single_case.Case(scenario.name, new_dict_ev, scenario.area, scenario.area, total_ev_dict, scenario.name)
     case_list.append(case)
-
-    #print("\t AREA CASE", case.area_case)
-    #for pre, fill, node in RenderTree(scenario):
-    #    print("%s%s %s %s  %s" % (pre, node.name, node.area, node.truth_value, node.scenario))
-    #scenario.parent = root_arg
-#print(scenario_dict)
-
-
-
-# no evidence added: only two cases: scn1 and scn2 with their respective priors
 
 new_list = []
 for case in case_list:

@@ -66,20 +66,14 @@ class Case:
                 self.list_known_evidence.append("!"+key)
 
     def check_with_evidence(self, evidence_from_case_model):
-        print(self.all_ev)
-        print(evidence_from_case_model)
-
-        flag = 1
         for key in evidence_from_case_model:
             if "scn" in key or "constraint" in key:
                 continue
             if self.all_ev[key] != evidence_from_case_model[key]:
-                print(key, self.all_ev[key], evidence_from_case_model[key])
-                flag = 0
-        if flag == 1:
-            return True
-        if flag == 0:
-            return False
+                #print(key, self.all_ev[key], evidence_from_case_model[key])
+                return False
+        return True
+
 
 
     # case width * case height = case area

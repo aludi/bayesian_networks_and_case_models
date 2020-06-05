@@ -5,8 +5,6 @@ import pyAgrum as gum
 import generate_case_model.Case as single_case
 
 
-
-
 class CaseModel:
     def __init__(self, case_list):
         self.cases = case_list
@@ -63,13 +61,18 @@ class CaseModel:
         posterior_of_scn = ie.posterior('constraint')
 
         width = posterior_of_scn
-        #print(ie.posterior(entry))
-        #print(posterior_of_scn)
         if flag == 1:
             self.change_evidence_scenario(posterior_entry, posterior_of_scn, entry, truth_value)
         elif flag == 0:
             self.add_new_evidence_scenario(entry, truth_value, posterior_entry, posterior_of_scn, ie, width)
 
+    def get_conditioned_area(self, entry, prior_dict):
+        conditioned_area = 1
+        for item in prior_dict:
+            if item != entry:
+                conditioned_area = prior_dict[item] * conditioned_area
+
+        return conditioned_area
 
 
     def change_evidence_scenario(self, posterior_entry, posterior_of_scn, entry, new_truth_value):
@@ -77,10 +80,7 @@ class CaseModel:
             old_case_ev_dict = dict(case.all_ev)
             index = int(case.scenario[-1])
             old_prior_dict = case.prior_dict
-            conditioned_area = 1
-            for item in old_prior_dict:
-                if item != entry:
-                    conditioned_area = old_prior_dict[item] * conditioned_area
+            conditioned_area = self.get_conditioned_area(entry, old_prior_dict)
 
             if old_case_ev_dict[entry] == new_truth_value:      # the case where the thing is negaated. We only need to update and swap around the posteriors...
                 case.area_case = conditioned_area*posterior_entry[0]*posterior_of_scn[index]
@@ -91,9 +91,34 @@ class CaseModel:
                 case.prior_dict[entry] = posterior_entry[1]
             case.scn_width = posterior_of_scn[index]
 
+    def generate_new_case(self, base_case, entry, new_truth_value, ie, width, posterior_entry, index_posterior):
+        full_dict = dict(base_case.all_ev)
+        new_evidence_dict = {}
+        new_evidence_dict['constraint'] = [0, 1, 1]
+        for x in base_case.all_ev:
+            if base_case.all_ev[x] != None:
+                new_evidence_dict[x] = base_case.all_ev[x]
+            if x == entry:
+                new_evidence_dict[x] = new_truth_value
+                full_dict[x] = new_truth_value
+        conditioned_area = self.get_conditioned_area(entry, base_case.prior_dict)
+        old_prior_dict = dict(base_case.prior_dict)
+
+        ie.setEvidence(new_evidence_dict)
+        posterior_of_scn = ie.posterior('constraint')
+        index = int(base_case.scenario[-1])
+        new_width = width[index]
+
+        new_case = single_case.Case("None", dict(new_evidence_dict), new_width,
+                                    conditioned_area * posterior_of_scn[index] * posterior_entry[index_posterior],              #index_posterior always 1 on the first call and 0 on the second
+                                    dict(full_dict),
+                                    base_case.scenario)
+        old_prior_dict[entry] = posterior_entry[index_posterior]
+        new_case.add_prior_dict(dict(old_prior_dict))
+        return new_case
+
 
     def add_new_evidence_scenario(self, entry, truth_value, posterior_entry, posterior_of_scn, ie, width):
-        print("NEW EVIDENCE")
         list_1 = []
         for case in self.cases:
 
@@ -102,7 +127,18 @@ class CaseModel:
             else:
                 neg_truth_value = 1
 
-            new_pos_evidence_dict = {}
+            ie.setEvidence({})
+            ie.posterior(entry)
+            ie.makeInference()
+
+            case_1 = self.generate_new_case(case, entry, truth_value, ie, width, posterior_entry, 1)
+            case_2 = self.generate_new_case(case, entry, neg_truth_value, ie, width, posterior_entry, 0)
+
+            list_1.append(case_1)
+            list_1.append(case_2)
+
+
+            '''new_pos_evidence_dict = {}
             new_pos_evidence_dict['constraint'] = [0, 1, 1]
             new_neg_evidence_dict = {}
             new_neg_evidence_dict['constraint'] = [0, 1, 1]
@@ -110,10 +146,7 @@ class CaseModel:
             total_dict_pos = dict(case.all_ev)
             total_dict_neg = dict(case.all_ev)
 
-
-
             for x in case.all_ev:
-                #print(entry, x)
                 if case.all_ev[x] != None:
                     new_pos_evidence_dict[x] = case.all_ev[x]
                     new_neg_evidence_dict[x] = case.all_ev[x]
@@ -122,34 +155,19 @@ class CaseModel:
                     new_neg_evidence_dict[x] = neg_truth_value
                     total_dict_pos[x] = truth_value
                     total_dict_neg[x] = neg_truth_value
-            '''
-            print(total_dict_pos)
-            print(total_dict_neg)
 
-            print(new_pos_evidence_dict)
-            print(new_neg_evidence_dict)
-            '''
-            print("PRIOR DICT  ", case.prior_dict)
+            conditioned_area = self.get_conditioned_area(entry, case.prior_dict)
             old_prior_dict_pos = dict(case.prior_dict)
             old_prior_dict_neg = dict(case.prior_dict)
 
-
             ie.setEvidence({})
             ie.posterior(entry)
-            #print(ie.posterior(entry))
             ie.makeInference()
             ie.setEvidence(new_pos_evidence_dict)
             posterior_of_scn = ie.posterior('constraint')
-            #print("PRINT POSTERIOR OF SCN GIVEN EVIENCE IN CASE", posterior_of_scn, new_pos_evidence_dict)
-            #print(case.scenario, posterior_entry)
 
             index = int(case.scenario[-1])
             new_width = width[index]
-
-            conditioned_area = 1
-            for item in old_prior_dict_pos:
-                conditioned_area = old_prior_dict_pos[item] * conditioned_area
-                print("\t conditioned:", conditioned_area)
 
 
             new_case = single_case.Case("None", dict(new_pos_evidence_dict), new_width,
@@ -157,87 +175,24 @@ class CaseModel:
                                         case.scenario)
             old_prior_dict_pos[entry] = posterior_entry[1]
             new_case.add_prior_dict(dict(old_prior_dict_pos))
-            '''
-            print(posterior_of_scn[index], posterior_entry[1])
-            print(posterior_of_scn[index] * posterior_entry[1])
-            print(conditioned_area * posterior_of_scn[index] * posterior_entry[1])
-            '''
 
 
             ie.setEvidence(new_neg_evidence_dict)
             posterior_of_scn = ie.posterior('constraint')
-            '''print("PRINT POSTERIOR OF SCN GIVEN EVIDENCE IN CASE", posterior_of_scn, new_neg_evidence_dict)
-            print(case.scenario, posterior_entry)
-
-            print(posterior_of_scn[index], posterior_entry[0])
-            print(posterior_of_scn[index] * posterior_entry[0])
-            print(conditioned_area * posterior_of_scn[index] * posterior_entry[0])'''
 
             case_negation = single_case.Case("None", dict(new_neg_evidence_dict), new_width,
                                              conditioned_area * posterior_of_scn[index] * posterior_entry[0], dict(total_dict_neg),
                                              case.scenario)
             old_prior_dict_neg[entry] = posterior_entry[0]
             case_negation.add_prior_dict(dict(old_prior_dict_neg))
-            '''
-            list_already_contains_case = False
-            list_already_contains_negated_case = False
-            for item in list_1:
-                if item.all_ev == new_case.all_ev:
-                    list_already_contains_case = True
-                elif item.all_ev == case_negation.all_ev:
-                    list_already_contains_negated_case = True
-            if list_already_contains_case == False:
-                list_1.append(new_case)
-            if list_already_contains_negated_case == False:
-                list_1.append(case_negation)
-            '''
+
             list_1.append(new_case)
-            list_1.append(case_negation)
+            list_1.append(case_negation)'''
         self.old_cases.append(self.cases)
         self.cases = []
 
         for item in list_1:
             self.add_case(item)
-
-            '''
-
-            new_case_dict_ev = dict(case.all_ev)
-            negation_dict_ev = dict(case.all_ev)
-            index = int(case.scenario[-1])
-            new_width = posterior_of_scn[index]
-            # then, create a new case with the negation (as it were)
-
-
-            new_case_dict_ev[entry] = truth_value
-            negation_dict_ev[entry] = neg_truth_value
-
-
-
-            new_case = single_case.Case("None", dict(new_case_dict_ev), new_width, posterior_of_scn[index] * posterior_entry[1], dict(new_case_dict_ev), case.scenario)
-            case_negation = single_case.Case("None", dict(negation_dict_ev), new_width, posterior_of_scn[index]*posterior_entry[0], dict(negation_dict_ev), case.scenario)
-
-            #print("NEW CASE", new_case.area_case, new_case.all_ev)
-            #print("NEW NEGATED CASE", case_negation.area_case, case_negation.all_ev)
-
-            list_already_contains_case = False
-            list_already_contains_negated_case = False
-            for item in list_1:
-                if item.all_ev == new_case.all_ev:
-                    list_already_contains_case = True
-                elif item.all_ev == case_negation.all_ev:
-                    list_already_contains_negated_case = True
-            if list_already_contains_case == False:
-                list_1.append(new_case)
-            if list_already_contains_negated_case == False:
-                list_1.append(case_negation)
-        self.old_cases.append(self.cases)
-        self.cases = []
-        
-
-        for item in list_1:
-            self.add_case(item)
-        '''
-
 
     def set_new_tree(self, tree):
         self.caseTree = tree
@@ -329,16 +284,13 @@ class CaseModel:
         for case in self.cases:
             scn = case.scenario
             case.scn_width = area_dict[scn]
-            print("HEIGHT", scn, case.scn_width, area_dict[scn])
 
         figure = go.Figure()
         stack = 0
         width = 0
         scn = 'scn_1'
-        flag = 0
         total_sum_area = 0
         for case in self.cases:
-            #print("IN FIG", case.name, case.area_case)
             val_val = case.check_with_evidence(self.evidence)
             total_sum_area = case.area_case + total_sum_area
             height_of_case = case.get_case_height()
