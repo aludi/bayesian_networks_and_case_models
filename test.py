@@ -269,10 +269,7 @@ new_list = []
 for case in case_list:
     case.all_ev = dict(total_ev_dict)
     for key in case.all_ev:
-        if key == case.scenario:
-            case.all_ev[key] = 1
-        else:
-            case.all_ev[key] = None
+        case.all_ev[key] = None
 caseModel = case_model.CaseModel(case_list)
 
 caseModel.set_dict_of_all_ev_nodes(total_ev_dict)
@@ -294,7 +291,7 @@ caseModel.add_evidence_scenario('testEv1', 1, ie)
 caseModel.print_case_model()
 caseModel.get_figure_scenario_based()
 
-'''
+
 caseModel.add_evidence_scenario('testEv2', 0, ie)
 caseModel.print_case_model()
 caseModel.get_figure_scenario_based()
@@ -303,4 +300,3 @@ caseModel.add_evidence_scenario('testEv3', 1, ie)
 caseModel.print_case_model()
 caseModel.get_figure_scenario_based()
 
-'''
