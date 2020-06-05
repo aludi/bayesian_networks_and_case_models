@@ -19,6 +19,7 @@ class Case:
         self.area_case = total_area_case
         self.list_known_evidence = []
         self.prior_dict = {}
+        self.event_list = []
 
     def add_prior_dict(self, new_prior_dict):
         self.prior_dict = new_prior_dict
@@ -35,6 +36,13 @@ class Case:
         else:
             list_add = entry
         self.list_known_evidence.append(list_add)
+
+    def add_to_event_list(self, event, value_string):
+        if value_string == "neg":
+            self.event_list.append("!"+event)
+        else:
+            self.event_list.append(event)
+
 
     def print_case_scn(self):
         print(self.scenario)
@@ -64,6 +72,8 @@ class Case:
                 self.list_known_evidence.append(key)
             if dict_of_evidence[key] == 0:
                 self.list_known_evidence.append("!"+key)
+        for item in self.event_list:
+            self.list_known_evidence.append(item)
 
     def check_with_evidence(self, evidence_from_case_model):
         for key in evidence_from_case_model:

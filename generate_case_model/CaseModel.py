@@ -20,14 +20,6 @@ class CaseModel:
     def get_dict_of_all_ev_nodes(self):
         return self.dict_of_all_ev_nodes
 
-    def print_case_model(self):
-        pass
-        '''
-        for case in self.cases:
-            print(case.name, case.get_case_area())
-            for node in case.dict_evidence_value.keys():
-                print("\t", node.name, node.tag, case.dict_evidence_value[node], case.area_case)
-        '''
     def add_case(self, case):
         self.cases.append(case)
 
@@ -64,14 +56,13 @@ class CaseModel:
         if flag == 1:
             self.change_evidence_scenario(posterior_entry, posterior_of_scn, entry, truth_value)
         elif flag == 0:
-            self.add_new_evidence_scenario(entry, truth_value, posterior_entry, posterior_of_scn, ie, width)
+            self.add_new_evidence_scenario(entry, truth_value, posterior_entry, ie, width)
 
     def get_conditioned_area(self, entry, prior_dict):
         conditioned_area = 1
         for item in prior_dict:
             if item != entry:
                 conditioned_area = prior_dict[item] * conditioned_area
-
         return conditioned_area
 
 
@@ -81,11 +72,9 @@ class CaseModel:
             index = int(case.scenario[-1])
             old_prior_dict = case.prior_dict
             conditioned_area = self.get_conditioned_area(entry, old_prior_dict)
-
             if old_case_ev_dict[entry] == new_truth_value:      # the case where the thing is negaated. We only need to update and swap around the posteriors...
                 case.area_case = conditioned_area*posterior_entry[0]*posterior_of_scn[index]
                 case.prior_dict[entry] = posterior_entry[0]
-
             else:
                 case.area_case = conditioned_area*posterior_entry[1]*posterior_of_scn[index]
                 case.prior_dict[entry] = posterior_entry[1]
@@ -104,13 +93,13 @@ class CaseModel:
         conditioned_area = self.get_conditioned_area(entry, base_case.prior_dict)
         old_prior_dict = dict(base_case.prior_dict)
 
-        ie.setEvidence(new_evidence_dict)
+        ie.setEvidence(new_evidence_dict)           # on the first call, set evidence dict for positive atom, on the second call for the negated atom
         posterior_of_scn = ie.posterior('constraint')
         index = int(base_case.scenario[-1])
         new_width = width[index]
 
         new_case = single_case.Case("None", dict(new_evidence_dict), new_width,
-                                    conditioned_area * posterior_of_scn[index] * posterior_entry[index_posterior],              #index_posterior always 1 on the first call and 0 on the second
+                                    conditioned_area * posterior_of_scn[index] * posterior_entry[index_posterior],      #index_posterior always 1 on the first call and 0 on the second
                                     dict(full_dict),
                                     base_case.scenario)
         old_prior_dict[entry] = posterior_entry[index_posterior]
@@ -118,164 +107,69 @@ class CaseModel:
         return new_case
 
 
-    def add_new_evidence_scenario(self, entry, truth_value, posterior_entry, posterior_of_scn, ie, width):
+    def add_new_evidence_scenario(self, entry, truth_value, posterior_entry, ie, width):
+        self.old_cases.append(self.cases)
         list_1 = []
         for case in self.cases:
-
             if truth_value == 1:
                 neg_truth_value = 0
             else:
                 neg_truth_value = 1
-
-            ie.setEvidence({})
-            ie.posterior(entry)
-            ie.makeInference()
-
-            case_1 = self.generate_new_case(case, entry, truth_value, ie, width, posterior_entry, 1)
-            case_2 = self.generate_new_case(case, entry, neg_truth_value, ie, width, posterior_entry, 0)
-
-            list_1.append(case_1)
-            list_1.append(case_2)
-
-
-            '''new_pos_evidence_dict = {}
-            new_pos_evidence_dict['constraint'] = [0, 1, 1]
-            new_neg_evidence_dict = {}
-            new_neg_evidence_dict['constraint'] = [0, 1, 1]
-
-            total_dict_pos = dict(case.all_ev)
-            total_dict_neg = dict(case.all_ev)
-
-            for x in case.all_ev:
-                if case.all_ev[x] != None:
-                    new_pos_evidence_dict[x] = case.all_ev[x]
-                    new_neg_evidence_dict[x] = case.all_ev[x]
-                if x == entry:
-                    new_pos_evidence_dict[x] = truth_value
-                    new_neg_evidence_dict[x] = neg_truth_value
-                    total_dict_pos[x] = truth_value
-                    total_dict_neg[x] = neg_truth_value
-
-            conditioned_area = self.get_conditioned_area(entry, case.prior_dict)
-            old_prior_dict_pos = dict(case.prior_dict)
-            old_prior_dict_neg = dict(case.prior_dict)
-
-            ie.setEvidence({})
-            ie.posterior(entry)
-            ie.makeInference()
-            ie.setEvidence(new_pos_evidence_dict)
-            posterior_of_scn = ie.posterior('constraint')
-
-            index = int(case.scenario[-1])
-            new_width = width[index]
-
-
-            new_case = single_case.Case("None", dict(new_pos_evidence_dict), new_width,
-                                        conditioned_area * posterior_of_scn[index] * posterior_entry[1], dict(total_dict_pos),
-                                        case.scenario)
-            old_prior_dict_pos[entry] = posterior_entry[1]
-            new_case.add_prior_dict(dict(old_prior_dict_pos))
-
-
-            ie.setEvidence(new_neg_evidence_dict)
-            posterior_of_scn = ie.posterior('constraint')
-
-            case_negation = single_case.Case("None", dict(new_neg_evidence_dict), new_width,
-                                             conditioned_area * posterior_of_scn[index] * posterior_entry[0], dict(total_dict_neg),
-                                             case.scenario)
-            old_prior_dict_neg[entry] = posterior_entry[0]
-            case_negation.add_prior_dict(dict(old_prior_dict_neg))
-
-            list_1.append(new_case)
-            list_1.append(case_negation)'''
-        self.old_cases.append(self.cases)
+            list_1.append(self.generate_new_case(case, entry, truth_value, ie, width, posterior_entry, 1))
+            list_1.append(self.generate_new_case(case, entry, neg_truth_value, ie, width, posterior_entry, 0))
         self.cases = []
-
         for item in list_1:
             self.add_case(item)
 
-    def set_new_tree(self, tree):
-        self.caseTree = tree
+    def find_posterior_events(self, entry, parent_of_entry, ie):
+        for case in self.cases:
+            evidence_in_case = case.dict_evidence_value
+            ie.setEvidence(evidence_in_case)
+            check_list = list(case.event_list)
+            case.event_list = []
+
+            # get the posterior of the aspect node.
+            posterior_parent_node = ie.posterior(parent_of_entry).tolist()
+            # TODO: figure out how to deal with this -> at which point is the parent node "sustained"?
+            if posterior_parent_node[0] > posterior_parent_node[1]:  # parent node is false
+                case.add_to_event_list(parent_of_entry, "neg")
+            else:  # parent node is true
+                case.add_to_event_list(parent_of_entry, "pos")
+
+
+            for item in check_list:  # recalculate for this as well
+                if "!" in item:
+                    name = item[1:]
+                else:
+                    name = item
+                posterior_parent_node = ie.posterior(name).tolist()
+                if posterior_parent_node[0] > posterior_parent_node[1]:  # parent node is false
+                    case.add_to_event_list(name, "neg")
+                else:  # parent node is true
+                    case.add_to_event_list(name, "pos")
+
+
 
     def get_evidence_dict(self):
         return self.evidence
 
-    def print_val_tree(self):
-        for pre, fill, node in RenderTree(self.caseTree):
-            print("%s%s %s %s  %s" % (pre, node.name, node.area, node.truth_value, node.tag))
-
-    def update_tree1(self, entry, truth_value, ie):
-        for node in PreOrderIter(self.caseTree):
-            if node.name == "Root":
-                continue
-            else:
-                if "!" in node.name:
-                    final_array = ie.posterior(node.name[1:])
-                    node.set_area(round(final_array[0], 2))
-                    if truth_value == 1:
-                        node.set_truth_value(0)
-                    else:
-                        node.set_truth_value(1)
-                else:
-                    final_array = ie.posterior(node.name)
-                    node.set_area(round(final_array[1], 2))
-                    if truth_value == 1:
-                        node.set_truth_value(1)
-                    else:
-                        node.set_truth_value(0)
-
-
-
-    def update_tree(self, entry, truth_value, call):
-        nodes = anytree.search.findall(self.caseTree, filter_=lambda node: node.name in (entry, "!" + entry))
-        for node in nodes:      # here, we actually want to update with the ie.posterior value (computationally more expensive!)
-            if call == "add":
-                if node.name == entry:
-                    if truth_value == 1:
-                        node.set_truth_value(1)
-                    else:
-                        node.set_truth_value(0)
-                if node.name != entry:
-                    if truth_value == 1:
-                        node.set_truth_value(0)
-                    else:
-                        node.set_truth_value(1)
-            if call == "remove":
-                node.set_truth_value(1)
-
-    def recalculate_area_for_plot(self):
-        for case in self.cases:
-            base = case.base_leaf.area
-            for item in case.base_leaf.ancestors:
-                if item.name != 'Root':
-                    base = base * item.area
-            case.recalculate_value(base)
-
     def print_preference_ordering(self):
         newList = sorted(self.cases, key=lambda x: x.val, reverse=True)
-        for x in newList:
-            print(x.list_case, x.val)
+        for case in newList:
+            print(case.name, case.area_case)
 
     def print_preference_ordering_relevant_cases(self):  # only show greter than 0
         newList = sorted(self.cases, key=lambda x: x.val, reverse=True)
-        for x in newList:
-            if x.val > 0:
-                print(x.list_case, x.val)
+        for case in newList:
+            if case.area_case > 0:
+                print(case.name, case.area_case)
             else:
                 break
 
-    def get_figure(self):
-        figure = go.Figure()
-        stack = 0
-        for case in self.cases:
-            if case.val > 0:
-                figure.add_trace( go.Scatter(x=[0, 0, 1, 1], y=[stack, case.val + stack, case.val + stack, stack], fill="toself"))
-                figure.add_trace(go.Scatter(x=[0.5], y=[stack + (case.val / 2)], text=[case.list_case], mode="text"))
-                figure.add_trace(go.Scatter(x=[0.01], y=[stack + (case.val / 2)], text=[round(case.val, 2)], mode="text"))
-                stack = stack + case.val
-        figure.show()
+    def print_case_model(self, full_case_model):
+        self.get_figure_scenario_based(full_case_model)
 
-    def get_figure_scenario_based(self):
+    def get_figure_scenario_based(self, full_case_model):
         area_dict = {}
         for case in self.cases:
             area_dict[case.scenario] = 0
@@ -300,7 +194,7 @@ class CaseModel:
                 stack = 0
                 scn = case.scenario
 
-            if val_val:
+            if full_case_model or val_val == True:
                 width_of_case = case.get_case_width()
                 case.collect_known_evidence()
                 figure.add_trace(

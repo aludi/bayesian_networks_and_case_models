@@ -186,6 +186,14 @@ def recursing_children_for_dict(parent, ie, scn_dict_ev, scn_dict_area):
         parent.set_tag("EVIDENCE")
     return scn_dict_ev, scn_dict_area
 
+def find_posterior_events(bn, caseModel, evidence, ie):
+    print(evidence)
+    x = bn.variable(evidence).name()
+    parent_node = bn.parents(x).pop()        # evidence/entry has one parent because evidence supports one node (TODO: more nodes) -> parent is a set
+    parent_node = bn.variable(parent_node).name()
+    print(parent_node)
+
+    caseModel.find_posterior_events(evidence, parent_node, ie)
 
 
 
@@ -250,36 +258,40 @@ for case in case_list:
         case.all_ev[key] = None
 caseModel = case_model.CaseModel(case_list)
 
+full_case_model = True
+
 caseModel.set_dict_of_all_ev_nodes(total_ev_dict)
 caseModel.evidence['constraint'] = [0, 1, 1]
-caseModel.print_case_model()
-caseModel.get_figure_scenario_based()
+caseModel.print_case_model(full_case_model)
 
-caseModel.add_evidence_scenario('testEv2', 0, ie)
-caseModel.print_case_model()
-caseModel.get_figure_scenario_based()
+evidence = 'testEv2'
+truth_val = 0
+caseModel.add_evidence_scenario(evidence, truth_val, ie)
+find_posterior_events(bn, caseModel, evidence, ie)
+#caseModel.find_posterior_events(evidence, ie)
+caseModel.print_case_model(full_case_model)
 
 caseModel.add_evidence_scenario('testEv1', 1, ie)
-caseModel.print_case_model()
-caseModel.get_figure_scenario_based()
+find_posterior_events(bn, caseModel, 'testEv1', ie)
+caseModel.print_case_model(full_case_model)
 
 
 caseModel.add_evidence_scenario('testEv1', 0, ie)
-caseModel.print_case_model()
-caseModel.get_figure_scenario_based()
+find_posterior_events(bn, caseModel, 'testEv1', ie)
+caseModel.print_case_model(full_case_model)
 
 
 caseModel.add_evidence_scenario('testEv1', 1, ie)
-caseModel.print_case_model()
-caseModel.get_figure_scenario_based()
+find_posterior_events(bn, caseModel, 'testEv1', ie)
+caseModel.print_case_model(full_case_model)
 
 
 caseModel.add_evidence_scenario('testEv2', 0, ie)
-caseModel.print_case_model()
-caseModel.get_figure_scenario_based()
+find_posterior_events(bn, caseModel, 'testEv2', ie)
+caseModel.print_case_model(full_case_model)
 
 caseModel.add_evidence_scenario('testEv3', 1, ie)
-caseModel.print_case_model()
-caseModel.get_figure_scenario_based()
+find_posterior_events(bn, caseModel, 'testEv3', ie)
+caseModel.print_case_model(full_case_model)
 
 
