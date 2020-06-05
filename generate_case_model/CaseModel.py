@@ -47,113 +47,74 @@ class CaseModel:
         self.recalculate_area_for_plot()
 
     def add_evidence_scenario(self, entry, truth_value, ie):
-        flag = "normal"
-        if entry in self.evidence.keys() and self.evidence[entry] != truth_value:   # we have changed the evidence!
-            #print("truth val : ", self.evidence[entry])
-            flag = "changing evidence"
-            pass
+
+        if entry in self.evidence.keys() and self.evidence[entry] != truth_value:
+            flag = 1
+        else:
+            flag = 0
         self.evidence[entry] = truth_value
-        #print("truth val : ", self.evidence[entry])
-        #print(self.evidence)
         posterior_entry = ie.posterior(entry).tolist()
-        list_1 = []
         ie.setEvidence(self.evidence)
+        posterior_of_scn = ie.posterior('constraint')
+        print(posterior_entry)
+        print(posterior_of_scn)
+        if flag == 1:
+            self.change_evidence_scenario(posterior_entry, posterior_of_scn)
+        else:
+            self.add_new_evidence_scenario(entry, truth_value, posterior_entry, posterior_of_scn)
+
+
+
+    def change_evidence_scenario(self, posterior_entry, posterior_of_scn):
+        print("IN HERE")
         for case in self.cases:
-            scn_case = case.scenario
-            save_key = "evidence_not_in_case"
-            #print("SCENARIO CASE", scn_case)
+            old_case_ev_dict = dict(case.all_ev)
+            index = int(case.scenario[-1])
+            print("CHAINGING EVIGENDE")
+            print(posterior_entry, posterior_of_scn)
 
-            #print(case.dict_evidence_value.keys())
-
-            for key in case.all_ev:
-                if str(key) == entry:
-                    save_key = key
-
-
-            scenario_of_new_case = case.scenario
-
-            #print("\t\t Dict of case", case.dict_evidence_value)
-            #print(case.all_ev)
-            new_case_dict_ev = case.all_ev
-            negation_dict_ev = case.all_ev
-            negation_case_area = case.area_case
-            negation_scenario_width = case.scn_width
-            negation_dict_all_ev = case.all_ev
-
-
-            #case.dict_evidence_value[save_key] = truth_value
-            #case.all_ev[save_key] = truth_value
-
-            index = int(scn_case[-1])
-            posterior_of_scn = ie.posterior('constraint')
-            #case.area_case = posterior_of_scn[index]*posterior_entry[1]
-            #print("AREA CALC", posterior_of_scn[index], posterior_entry[1], case.area_case)
-            #case.width = posterior_of_scn[index]
-            #case.set_case_area(case.area_case)
-
+    def add_new_evidence_scenario(self, entry, truth_value, posterior_entry, posterior_of_scn):
+        list_1 = []
+        for case in self.cases:
+            new_case_dict_ev = dict(case.all_ev)
+            negation_dict_ev = dict(case.all_ev)
+            index = int(case.scenario[-1])
+            new_width = posterior_of_scn[index]
             # then, create a new case with the negation (as it were)
             if truth_value == 1:
                 neg_truth_value = 0
             else:
                 neg_truth_value = 1
-            #if save_key != "evidence_not_in_case":
 
-            '''print("NEGATION DICT EV BEFOR:")
-            for key in negation_dict_ev:
-                print(key, negation_dict_ev[key])'''
+            new_case_dict_ev[entry] = truth_value
+            negation_dict_ev[entry] = neg_truth_value
 
+            #print("OLD CASE", case.area_case, case.all_ev)
+            new_case = single_case.Case("None", dict(new_case_dict_ev), new_width, posterior_of_scn[index] * posterior_entry[1], dict(new_case_dict_ev), case.scenario)
+            case_negation = single_case.Case("None", dict(negation_dict_ev), new_width, posterior_of_scn[index]*posterior_entry[0], dict(negation_dict_ev), case.scenario)
 
-            new_case_dict_ev[save_key] = truth_value
+            #print("NEW CASE", new_case.area_case, new_case.all_ev)
+            #print("NEW NEGATED CASE", case_negation.area_case, case_negation.all_ev)
 
-
-            negation_dict_ev[save_key] = neg_truth_value
-            negation_case_area = posterior_of_scn[index]*posterior_entry[0]
-
-            '''print("NEGATION DICT EV AFTER:", negation_dict_ev)
-            for key in negation_dict_ev:
-                print(key, negation_dict_ev[key])'''
-
-            case = single_case.Case("None", new_case_dict_ev, case.scn_width, case.area_case, case.all_ev, scenario_of_new_case)
-            case.improve_name_list(entry, truth_value, flag)
-            case.area_case = posterior_of_scn[index] * posterior_entry[1]
-
-            case_negation = single_case.Case("None", negation_dict_ev, negation_scenario_width, negation_case_area, negation_dict_all_ev, scenario_of_new_case)
-            #case_negation.improve_name_list(entry, neg_truth_value, flag)
-            case_negation.area_case = posterior_of_scn[index]*posterior_entry[0]
-            #print("NEG AREA CALC", posterior_of_scn[index], posterior_entry[0], case_negation.area_case)
-
-            #case_negation.width = posterior_of_scn[index]
-            list_1.append(case)
-            list_1.append(case_negation)
-            #case_negation.set_case_area(case_negation.area_case)
-
-            #case.improve_name_list(entry, truth_value, flag)
-
-
+            list_already_contains_case = False
+            list_already_contains_negated_case = False
+            for item in list_1:
+                if item.all_ev == new_case.all_ev:
+                    list_already_contains_case = True
+                elif item.all_ev == case_negation.all_ev:
+                    list_already_contains_negated_case = True
+            if list_already_contains_case == False:
+                list_1.append(new_case)
+            if list_already_contains_negated_case == False:
+                list_1.append(case_negation)
         self.old_cases.append(self.cases)
         self.cases = []
 
         for item in list_1:
             self.add_case(item)
 
-        #self.update_tree1(entry, truth_value, ie)
-        #self.recalculate_area_for_plot()
-        '''
-        print("CASES: ")
         for case in self.cases:
-            print("\t", case.name, case.scenario, case.area_case, case.scn_width)
-            for key in case.dict_evidence_value.keys():
-                print(key, case.dict_evidence_value[key])
-        '''
-
-
-    '''
-    def remove_evidence(self, entry):
-        self.evidence[entry] = 1  # not sure about this interpretation of truth value..
-        self.update_tree(entry, )
-        self.recalculate_area_for_plot() -> removing evidence 
-    '''
-    # removing evidence should mean resetting to prior! TODO: implementing resetting to prior
+            print(case.area_case, case.all_ev)
 
     def set_new_tree(self, tree):
         self.caseTree = tree
@@ -240,31 +201,37 @@ class CaseModel:
         figure = go.Figure()
         stack = 0
         width = 0
-        scn = None
+        scn = 'scn_1'
         flag = 0
+        total_sum_area = 0
         for case in self.cases:
-            print("IN FIG", case.name, case.area_case, case.dict_evidence_value)
-            # if scenario changes, stack-height must reset
+            print("IN FIG", case.name, case.area_case)
+            val_val = case.check_with_evidence(self.evidence)
+            total_sum_area = case.area_case + total_sum_area
+            height_of_case = case.get_case_height()
+            # if scenario changes, stack-height must reset and we must move to the right
             if case.scenario != scn:
+                width = width_of_case + width
                 stack = 0
                 scn = case.scenario
-                flag = 1
-            if case.area_case > 0:
+
+            if val_val == True or val_val == False:
                 width_of_case = case.get_case_width()
-                height_of_case = case.get_case_height()
+                case.collect_known_evidence()
                 figure.add_trace(
-                    go.Scatter(x=[width, width, width+width_of_case, width+width_of_case], y=[stack, height_of_case, height_of_case, stack], fill="toself"))
+                    go.Scatter(x=[width, width, width+width_of_case, width+width_of_case], y=[stack, stack+height_of_case, stack+height_of_case, stack], fill="toself"))
                 figure.add_trace(
                     go.Scatter(x=[(case.get_case_width()/2)+width], y=[(height_of_case / 2) + stack], text=[case.list_known_evidence], mode="text"))
                 figure.add_trace(
                     go.Scatter(x=[(case.get_case_width() / 2) + width], y=[(height_of_case / 3) + stack],
                                text=[round(case.area_case, 2)], mode="text"))
+                figure.update_xaxes(range=[-0.1, 1.1])
+                figure.update_yaxes(range=[-0.1, 1.1])
 
             stack = stack + height_of_case
-            if flag == 1:
-                width = width_of_case + width
-                flag = 0
+
         print("\n")
+        print(total_sum_area)
         figure.show()
 
 

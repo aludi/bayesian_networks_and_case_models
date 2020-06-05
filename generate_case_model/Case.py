@@ -17,7 +17,7 @@ class Case:
         self.scn_width = scn_area
         self.scenario = scenario_name
         self.area_case = total_area_case
-        self.list_known_evidence = [self.scenario]
+        self.list_known_evidence = []
 
     def improve_name_list(self, entry, truth_value, flag):
         if flag == "changing evidence":
@@ -50,6 +50,31 @@ class Case:
     def update_dict(self, dict_new):
         self.all_ev = dict_new
         self.dict_evidence_value = dict_new
+        return
+
+    def collect_known_evidence(self):
+        dict_of_evidence = self.all_ev
+        for key in dict_of_evidence:
+            if dict_of_evidence[key] == 1:
+                self.list_known_evidence.append(key)
+            if dict_of_evidence[key] == 0:
+                self.list_known_evidence.append("!"+key)
+
+    def check_with_evidence(self, evidence_from_case_model):
+        print(self.all_ev)
+        print(evidence_from_case_model)
+
+        flag = 1
+        for key in evidence_from_case_model:
+            if "scn" in key or "constraint" in key:
+                continue
+            if self.all_ev[key] != evidence_from_case_model[key]:
+                print(key, self.all_ev[key], evidence_from_case_model[key])
+                flag = 0
+        if flag == 1:
+            return True
+        if flag == 0:
+            return False
 
 
     # case width * case height = case area
