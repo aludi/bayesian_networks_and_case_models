@@ -18,6 +18,10 @@ class Case:
         self.scenario = scenario_name
         self.area_case = total_area_case
         self.list_known_evidence = []
+        self.prior_dict = {}
+
+    def add_prior_dict(self, new_prior_dict):
+        self.prior_dict = new_prior_dict
 
     def improve_name_list(self, entry, truth_value, flag):
         if flag == "changing evidence":
