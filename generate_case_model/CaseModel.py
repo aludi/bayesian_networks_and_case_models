@@ -136,11 +136,14 @@ class CaseModel:
             self.add_case(item)
 
     def find_posterior_events(self, entry, parent_of_entry, ie):
+        print(ie.posterior("constraint"))
         for case in self.cases:
+
             evidence_in_case = case.dict_evidence_value
             ie.setEvidence(evidence_in_case)
             check_list = list(case.event_list)
             case.event_list = []
+
 
             # get the posterior of the aspect node.
             posterior_parent_node = ie.posterior(parent_of_entry).tolist()
@@ -161,8 +164,6 @@ class CaseModel:
                     case.add_to_event_list(name, "neg")
                 else:  # parent node is true
                     case.add_to_event_list(name, "pos")
-
-
 
 
 
@@ -206,11 +207,13 @@ class CaseModel:
             height_of_case = case.get_case_height()
             # if scenario changes, stack-height must reset and we must move to the right
             if case.scenario != scn:
+                width_of_case = case.get_case_width()
+
                 width = width_of_case + width
                 stack = 0
                 scn = case.scenario
 
-            if val_val == True:
+            if val_val == True or val_val == False:
                 width_of_case = case.get_case_width()
                 case.collect_known_evidence()
                 figure.add_trace(
@@ -252,26 +255,29 @@ class CaseModel:
         for case in self.cases:
             val_val = case.check_with_evidence(self.evidence)
             total_sum_area = case.area_case + total_sum_area
+            print(case.all_ev, case.get_case_width(), case.get_case_area())
             height_of_case = case.get_case_height()
             # if scenario changes, stack-height must reset and we must move to the right
+            print(case.scenario, scn)
             if case.scenario != scn:
+                width_of_case = case.get_case_width()   # todo: fix this
                 width = width_of_case + width
                 stack = 0 + base_y_pos
                 scn = case.scenario
 
-            if val_val == True:
+            if val_val:
                 width_of_case = case.get_case_width()
                 case.collect_known_evidence()
                 figure.add_trace(
                     go.Scatter(x=[width, width, width+width_of_case, width+width_of_case], y=[stack, stack+height_of_case, stack+height_of_case, stack], fill="toself"))
                 figure.add_trace(
                     go.Scatter(x=[(case.get_case_width()/2)+width], y=[(height_of_case / 2) + stack], text=[case.return_known_events()], mode="text"))
-                '''
+
                 figure.add_trace(
                     go.Scatter(x=[(case.get_case_width() / 2) + width], y=[(height_of_case / 4) + stack],
                                text=[round(case.area_case, 3)], mode="text"))
-                '''
-                figure.update_xaxes(range=[-0.1, 1.4])
+
+                #figure.update_xaxes(range=[-0.1, 1.4])
 
             stack = stack + height_of_case
 

@@ -198,8 +198,9 @@ def find_posterior_events(bn, caseModel, evidence, ie):
     caseModel.find_posterior_events(evidence, parent_node, ie)
 
 
-
-bn = createBN()
+bn = gum.loadBN("final_2020_reordered_constraint_node.net")
+print(bn)
+#bn = createBN()
 caseModelDomainSpace = 1
 cases = [({}, 1)]  # ([], 1)
 bn.names()
@@ -208,6 +209,8 @@ ie = gum.LazyPropagation(bn)
 
 for x in bn.names():
     node_name = bn.variable(x).name()
+    print(node_name)
+    print(ie.posterior(node_name).tolist())
     #print(bn.parents(x))
     if str(bn.parents(x)) != "set()":
         for item in bn.parents(x):
@@ -216,13 +219,14 @@ for x in bn.names():
     if "scn" in node_name:
         ie.setEvidence({'constraint': [0, 1, 1]})       # setting soft evidence to force the constraint node.
         prior_on_scenarios = ie.posterior('constraint').tolist()
-        index_in_constraint_table = node_name[-1]           # this is unusable in practice TODO: find scenarios by name in constraint table
+        print(ie.posterior('constraint'), node_name)
+        index_in_constraint_table = node_name[-1]
+        print(index_in_constraint_table)
         prior_scenario_value = prior_on_scenarios[int(index_in_constraint_table)]
         #print("prior scenario value: ", prior_scenario_value)
         node_atom = prop.Prop(node_name, prior_scenario_value, truth_value=1, tag="SCENARIO")
-        #print(node_name, prior_scenario_value)
+        print(node_name, prior_scenario_value)
         node_atom.add_scenario(node_name)
-        #print(type(node_atom))
         list_of_scenarios.append(node_atom)
     division = len(bn.variable(x).domain()) - 3  # - <, , , >, # check len q, if q > 5, then not binary (<0,1>).
     caseModelDomainSpace = caseModelDomainSpace / division
@@ -241,10 +245,11 @@ scenario_dict_area = {}
 total_ev_dict = {}
 
 case_list = []
-
 for scenario in list_of_scenarios:
     new_dict_ev = {scenario.name: scenario.truth_value}
+    print(new_dict_ev)
     new_dict_area = {scenario.name: scenario.area}
+    print(new_dict_area)
     new_dict_ev, new_dict_area = recursing_children_for_dict(scenario, ie, new_dict_ev, new_dict_area)
     scenario_dict_key = scenario.name
     scenario_dict_ev[scenario_dict_key] = new_dict_ev
@@ -267,8 +272,23 @@ base_y_pos = 0
 caseModel.set_dict_of_all_ev_nodes(total_ev_dict)
 caseModel.evidence['constraint'] = [0, 1, 1]
 #caseModel.print_case_model(full_case_model)
-caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
+figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
 
+caseModel.add_evidence_scenario('body_found', 1, ie)
+find_posterior_events(bn, caseModel, 'body_found', ie)
+caseModel.print_case_model(full_case_model)
+base_y_pos = base_y_pos - 2
+figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
+
+
+'''
+caseModel.add_evidence_scenario('weapon_found', 1, ie)
+find_posterior_events(bn, caseModel, 'weapon_found', ie)
+#caseModel.print_case_model(full_case_model)
+base_y_pos = base_y_pos - 2
+figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
+'''
+'''
 evidence = 'testEv2'
 truth_val = 0
 caseModel.add_evidence_scenario(evidence, truth_val, ie)
@@ -311,5 +331,5 @@ find_posterior_events(bn, caseModel, 'testEv3', ie)
 #caseModel.print_case_model(full_case_model)
 base_y_pos = base_y_pos - 2
 figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
-
+'''
 
