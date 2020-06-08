@@ -13,6 +13,7 @@ class CaseModel:
         self.caseTree = None
         self.dict_of_nodes = {}
         self.dict_of_all_ev_nodes = {}
+        self.string_new_evidence_added_this_step = ""
 
     def set_dict_of_all_ev_nodes(self, total_ev_dict):
         self.dict_of_all_ev_nodes = total_ev_dict
@@ -37,6 +38,8 @@ class CaseModel:
         self.recalculate_area_for_plot()
 
     def add_evidence_scenario(self, entry, truth_value, ie):
+        self.set_temp_evidence_for_visualization(entry, truth_value)
+
         if entry in self.evidence.keys():
             if self.evidence[entry] != truth_value:
                 flag = 1
@@ -64,6 +67,17 @@ class CaseModel:
             if item != entry:
                 conditioned_area = prior_dict[item] * conditioned_area
         return conditioned_area
+
+    def set_temp_evidence_for_visualization(self, entry, truth_value):
+        if truth_value == 0:
+            new_ev = "!"+entry
+        else:
+            new_ev = entry
+        self.string_new_evidence_added_this_step = new_ev
+
+    def get_string_evidence_added_this_step(self):
+        return self.string_new_evidence_added_this_step
+
 
 
     def change_evidence_scenario(self, posterior_entry, posterior_of_scn, entry, new_truth_value):
@@ -150,6 +164,8 @@ class CaseModel:
 
 
 
+
+
     def get_evidence_dict(self):
         return self.evidence
 
@@ -194,7 +210,7 @@ class CaseModel:
                 stack = 0
                 scn = case.scenario
 
-            if full_case_model or val_val == True:
+            if val_val == True:
                 width_of_case = case.get_case_width()
                 case.collect_known_evidence()
                 figure.add_trace(
@@ -214,5 +230,55 @@ class CaseModel:
         print(total_sum_area)
         figure.show()
 
+    def get_figure_stacked(self, figure_stack, full_case_model, base_y_pos):
+        area_dict = {}
+        for case in self.cases:
+            area_dict[case.scenario] = 0
+        for case in self.cases:
+            area_dict[case.scenario] = area_dict[case.scenario] + case.area_case
+        for case in self.cases:
+            scn = case.scenario
+            case.scn_width = area_dict[scn]
+
+        figure = figure_stack
+        stack = 0 + base_y_pos
+        width = 0
+        scn = 'scn_1'
+        total_sum_area = 0
+        # add the evidence
+        figure.add_trace(
+            go.Scatter(x=[1.2], y=[stack + 1],
+                       text=[self.get_string_evidence_added_this_step()], mode="text"))
+        for case in self.cases:
+            val_val = case.check_with_evidence(self.evidence)
+            total_sum_area = case.area_case + total_sum_area
+            height_of_case = case.get_case_height()
+            # if scenario changes, stack-height must reset and we must move to the right
+            if case.scenario != scn:
+                width = width_of_case + width
+                stack = 0 + base_y_pos
+                scn = case.scenario
+
+            if val_val == True:
+                width_of_case = case.get_case_width()
+                case.collect_known_evidence()
+                figure.add_trace(
+                    go.Scatter(x=[width, width, width+width_of_case, width+width_of_case], y=[stack, stack+height_of_case, stack+height_of_case, stack], fill="toself"))
+                figure.add_trace(
+                    go.Scatter(x=[(case.get_case_width()/2)+width], y=[(height_of_case / 2) + stack], text=[case.return_known_events()], mode="text"))
+                '''
+                figure.add_trace(
+                    go.Scatter(x=[(case.get_case_width() / 2) + width], y=[(height_of_case / 4) + stack],
+                               text=[round(case.area_case, 3)], mode="text"))
+                '''
+                figure.update_xaxes(range=[-0.1, 1.4])
+
+            stack = stack + height_of_case
+
+
+        print("\n")
+        print(total_sum_area)
+        figure.show()
+        return figure
 
 

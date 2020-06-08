@@ -38,10 +38,13 @@ class Case:
         self.list_known_evidence.append(list_add)
 
     def add_to_event_list(self, event, value_string):
+
         if value_string == "neg":
-            self.event_list.append("!"+event)
+            string_to_add = "!"+event
         else:
-            self.event_list.append(event)
+            string_to_add = event
+        if string_to_add not in self.event_list:
+            self.event_list.append(string_to_add)
 
 
     def print_case_scn(self):
@@ -74,6 +77,9 @@ class Case:
                 self.list_known_evidence.append("!"+key)
         for item in self.event_list:
             self.list_known_evidence.append(item)
+
+    def return_known_events(self):
+        return self.event_list
 
     def check_with_evidence(self, evidence_from_case_model):
         for key in evidence_from_case_model:

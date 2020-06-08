@@ -4,6 +4,8 @@ import generate_case_model.Prop as prop
 import pyAgrum as gum
 import anytree.search
 from anytree import RenderTree, PreOrderIter
+import plotly.graph_objects as go
+
 
 
 def createBN():
@@ -259,39 +261,55 @@ for case in case_list:
 caseModel = case_model.CaseModel(case_list)
 
 full_case_model = True
+figure = go.Figure()
+base_y_pos = 0
 
 caseModel.set_dict_of_all_ev_nodes(total_ev_dict)
 caseModel.evidence['constraint'] = [0, 1, 1]
-caseModel.print_case_model(full_case_model)
+#caseModel.print_case_model(full_case_model)
+caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
 
 evidence = 'testEv2'
 truth_val = 0
 caseModel.add_evidence_scenario(evidence, truth_val, ie)
 find_posterior_events(bn, caseModel, evidence, ie)
 #caseModel.find_posterior_events(evidence, ie)
-caseModel.print_case_model(full_case_model)
+#caseModel.print_case_model(full_case_model)
+base_y_pos = base_y_pos - 2
+figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
+
 
 caseModel.add_evidence_scenario('testEv1', 1, ie)
 find_posterior_events(bn, caseModel, 'testEv1', ie)
-caseModel.print_case_model(full_case_model)
+#caseModel.print_case_model(full_case_model)
+base_y_pos = base_y_pos - 2
+figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
 
 
 caseModel.add_evidence_scenario('testEv1', 0, ie)
 find_posterior_events(bn, caseModel, 'testEv1', ie)
-caseModel.print_case_model(full_case_model)
+#caseModel.print_case_model(full_case_model)
+base_y_pos = base_y_pos - 2
+figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
 
 
 caseModel.add_evidence_scenario('testEv1', 1, ie)
 find_posterior_events(bn, caseModel, 'testEv1', ie)
-caseModel.print_case_model(full_case_model)
+#caseModel.print_case_model(full_case_model)
+base_y_pos = base_y_pos - 2
+figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
 
 
 caseModel.add_evidence_scenario('testEv2', 0, ie)
 find_posterior_events(bn, caseModel, 'testEv2', ie)
-caseModel.print_case_model(full_case_model)
+#caseModel.print_case_model(full_case_model)
+base_y_pos = base_y_pos - 2
+figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
 
 caseModel.add_evidence_scenario('testEv3', 1, ie)
 find_posterior_events(bn, caseModel, 'testEv3', ie)
-caseModel.print_case_model(full_case_model)
+#caseModel.print_case_model(full_case_model)
+base_y_pos = base_y_pos - 2
+figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
 
 
