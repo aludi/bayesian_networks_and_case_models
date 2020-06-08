@@ -79,7 +79,9 @@ class Case:
             self.list_known_evidence.append(item)
 
     def return_known_events(self):
-        return self.event_list
+        new_list = [self.scenario]
+        new_list.extend(self.event_list)
+        return new_list
 
     def check_with_evidence(self, evidence_from_case_model):
         for key in evidence_from_case_model:
