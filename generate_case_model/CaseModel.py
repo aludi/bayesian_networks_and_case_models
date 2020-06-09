@@ -38,11 +38,10 @@ class CaseModel:
         self.recalculate_area_for_plot()
 
     def add_evidence_scenario(self, entry, truth_value, ie, imported):
-
+        #print(entry,  truth_value)
         self.set_temp_evidence_for_visualization(entry, truth_value)
         if imported == 1:
             truth_value = self.swap_vals(truth_value)   # for imported BN TODO: fix thiiiis
-
         if entry in self.evidence.keys():
             if self.evidence[entry] != truth_value:
                 flag = 1
@@ -105,11 +104,11 @@ class CaseModel:
 
     def generate_new_case(self, base_case, entry, new_truth_value, ie, width, posterior_entry, index_posterior, imported):
 
-        if imported == 1:
+        '''if imported == 1:
             print("generating new case with entry: ", entry, "and (swapped) truth value ", self.swap_vals(new_truth_value))
         else:
             print("generating new case with entry: ", entry, "and truth value ", new_truth_value)
-        print("evidence: ", base_case.all_ev)
+        print("evidence: ", base_case.all_ev)'''
 
         full_dict = dict(base_case.all_ev)
         new_evidence_dict = {}
@@ -127,15 +126,16 @@ class CaseModel:
         ie.setEvidence(new_evidence_dict)           # on the first call, set evidence dict for positive atom, on the second call for the negated atom
         try:
             posterior_of_scn = ie.posterior('constraint')
+            #print(" & ", '{:0.2e}'.format(1 - posterior_of_scn[1]), " & ", '{:0.2e}'.format(1 - posterior_of_scn[2]), "& ", '{:0.2e}'.format((1 - posterior_of_scn[1])/(1 - posterior_of_scn[2])), "\\\\")
 
             index = int(base_case.scenario[-1])
             new_width = width[index]
 
-            print("scenario: ", base_case.scenario, "area: ",
+            '''print("scenario: ", base_case.scenario, "area: ",
                   conditioned_area * (1 - posterior_of_scn[index]) * (posterior_entry[index_posterior]))
             print("\t conditioned: ", conditioned_area)
             print("\t 1 - posterior scenario: ", (1 - posterior_of_scn[index]))
-            print("\t 1 - posterior entry: ", (posterior_entry[index_posterior]))
+            print("\t 1 - posterior entry: ", (posterior_entry[index_posterior]))'''
 
             if imported == 1:
                 new_case = single_case.Case("None", dict(new_evidence_dict), new_width,
@@ -145,6 +145,7 @@ class CaseModel:
                                             dict(full_dict),
                                             base_case.scenario)
             else:
+
                 new_case = single_case.Case("None", dict(new_evidence_dict), new_width,
                                             conditioned_area * posterior_of_scn[index] *
                                             posterior_entry[index_posterior],
@@ -171,7 +172,7 @@ class CaseModel:
                 neg_truth_value = 1
             if imported == 1:
                 list_1.append(self.generate_new_case(case, entry, truth_value, ie, width, posterior_entry, 0, imported))
-                list_1.append(self.generate_new_case(case, entry, neg_truth_value, ie, width, posterior_entry, 1, imported))
+                #list_1.append(self.generate_new_case(case, entry, neg_truth_value, ie, width, posterior_entry, 1, imported))
             else:
                 list_1.append(self.generate_new_case(case, entry, truth_value, ie, width, posterior_entry, 1, imported))
                 list_1.append(self.generate_new_case(case, entry, neg_truth_value, ie, width, posterior_entry, 0, imported))
@@ -181,7 +182,6 @@ class CaseModel:
 
     def find_posterior_events(self, entry, parent_of_entry, ie, imported):
         for case in self.cases:
-
             evidence_in_case = case.dict_evidence_value
             ie.setEvidence(evidence_in_case)
             check_list = list(case.event_list)
@@ -293,7 +293,7 @@ class CaseModel:
             area_dict[case.scenario] = area_dict[case.scenario] + case.area_case
         for case in self.cases:
             scn = case.scenario
-            case.scn_width = 0.5
+            case.scn_width = area_dict[scn]
         for case in self.cases:
             first_scn = case.scenario
             break
@@ -310,23 +310,23 @@ class CaseModel:
         for case in self.cases:
             val_val = case.check_with_evidence(self.evidence)
             total_sum_area = case.area_case + total_sum_area
-            print(case.all_ev, case.get_case_width(), case.get_case_area())
+            #print(case.all_ev, case.get_case_width(), case.get_case_area())
             height_of_case = case.get_case_height()
             # if scenario changes, stack-height must reset and we must move to the right
-            print(case.scenario, scn)
+            #print(case.scenario, scn)
 
             if case.scenario != scn:
                 width = width_of_case + width
                 stack = 0 + base_y_pos
                 scn = case.scenario
 
-            if val_val:
+            if val_val == True:
                 width_of_case = case.get_case_width()
                 case.collect_known_evidence()
                 figure.add_trace(
                     go.Scatter(x=[width, width, width+width_of_case, width+width_of_case], y=[stack, stack+height_of_case, stack+height_of_case, stack], fill="toself"))
                 figure.add_trace(
-                    go.Scatter(x=[(case.get_case_width()/2)+width], y=[(height_of_case / 2) + stack], text=[case.return_known_events()], mode="text"))
+                    go.Scatter(x=[(case.get_case_width()/4)+width], y=[(height_of_case/2) + stack], text=[case.return_known_events()], mode="text"))
 
                 figure.add_trace(
                     go.Scatter(x=[(case.get_case_width() / 2) + width], y=[(height_of_case / 4) + stack],
@@ -334,13 +334,14 @@ class CaseModel:
 
                 figure.update_xaxes(range=[-0.1, 1.6])
                 next_round.append(case)
-
             stack = stack + height_of_case
 
-        self.cases = next_round # pruning
-        print("\n")
-        print(total_sum_area)
-        figure.show()
+        #print("&",'{:0.2e}'.format(next_round[1].area_case), "&", '{:0.2e}'.format(next_round[0].area_case), "&", '{:0.2e}'.format(next_round[1].area_case/next_round[0].area_case), "\\\\")
+
+        #self.cases = next_round # pruning
+        #print("\n")
+        #print(total_sum_area)
+
         return figure
 
 
