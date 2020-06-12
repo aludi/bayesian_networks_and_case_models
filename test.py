@@ -5,6 +5,7 @@ import pyAgrum as gum
 import anytree.search
 from anytree import RenderTree, PreOrderIter
 import plotly.graph_objects as go
+from termcolor import colored
 
 
 
@@ -43,7 +44,7 @@ def createBN():
     bn.cpt(scn_2).fillWith([0.3, 0.7])  # probability of accident
 
 
-    bn.cpt(constraint)[{'scn_1':0, 'scn_2':0}] = [0.5, 0, 0.5]
+    bn.cpt(constraint)[{'scn_1':0, 'scn_2':0}] = [1, 0, 0]
     bn.cpt(constraint)[{'scn_1':0, 'scn_2':1}] = [0, 0, 1]
     bn.cpt(constraint)[{'scn_1':1, 'scn_2':0}] = [0, 1, 0]
     bn.cpt(constraint)[{'scn_1':1, 'scn_2':1}] = [1, 0, 0]
@@ -224,19 +225,27 @@ def find_posterior_events(bn, caseModel, evidence, ie, imported):
     caseModel.find_posterior_events(evidence, parent_node, ie, imported)
 
 
-#bn = gum.loadBN("real_final_network_2020.net")
-imported = 0
-#print(bn)
-bn = createBN()
-#print(bn)
+bn = gum.loadBN("real_final_network_2020.net")
+imported = 1
+#bn = createBN()
 caseModelDomainSpace = 1
 cases = [({}, 1)]  # ([], 1)
 bn.names()
 list_of_scenarios = []
+
+''' virtual evidence: '''
+vE = bn.add(gum.LabelizedVariable('vE', 'vE', 2))
+constraint = bn.variable('constraint').name()
+print(bn.cpt('constraint'))
+bn.addArc('constraint', 'vE')
+bn.cpt("vE")[{'constraint': 0}] = [1, 0]
+bn.cpt("vE")[{'constraint': 1}] = [0.5, 0.5]
+bn.cpt("vE")[{'constraint': 2}] = [0.5, 0.5]
+
 ie = gum.LazyPropagation(bn)
 
-ie.setEvidence({'constraint': [0, 1, 1]})  # setting soft evidence to force the constraint node.
-
+ie.setEvidence({'vE': 1})  # setting VIRTUAL (soft) evidence to force the constraint node.
+print(ie.posterior('constraint'))
 for x in bn.names():
     node_name = bn.variable(x).name()
 
@@ -301,20 +310,27 @@ full_case_model = True
 figure = go.Figure()
 base_y_pos = 0
 
+
 caseModel.set_dict_of_all_ev_nodes(total_ev_dict)
-caseModel.evidence['constraint'] = [0, 1, 1]
-#print("new contraint: ", ie.posterior("constraint"))
+caseModel.evidence['vE'] = 1
+caseModel.add_evidence_scenario("vE", 1, ie, imported)
+caseModel.update_the_dict_with_priors(ie, imported)
+print("new contraint: ", ie.posterior("constraint"))
 #caseModel.print_case_model(full_case_model)
 figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
+print(colored(ie.posterior('constraint'), 'green'))
 
+
+'''
 evidence = 'testEv2'
 truth_val = 0
+
 caseModel.add_evidence_scenario(evidence, truth_val, ie, imported=0)
 find_posterior_events(bn, caseModel, evidence, ie, 0)
-#caseModel.find_posterior_events(evidence, ie)
-#caseModel.print_case_model(full_case_model)
 base_y_pos = base_y_pos - 2
 figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
+print("testev2 0 ", colored(ie.posterior('constraint'), "green"))
+
 
 
 caseModel.add_evidence_scenario('testEv1', 1, ie, 0)
@@ -322,9 +338,11 @@ find_posterior_events(bn, caseModel, 'testEv1', ie, 0)
 #caseModel.print_case_model(full_case_model)
 base_y_pos = base_y_pos - 2
 figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
+print("testev1 1 ", colored(ie.posterior('constraint'), "green"))
 
 
-'''caseModel.add_evidence_scenario('testEv1', 0, ie, 0)
+
+caseModel.add_evidence_scenario('testEv1', 0, ie, 0)
 find_posterior_events(bn, caseModel, 'testEv1', ie,0 )
 #caseModel.print_case_model(full_case_model)
 base_y_pos = base_y_pos - 2
@@ -342,7 +360,7 @@ caseModel.add_evidence_scenario('testEv2', 0, ie, 0)
 find_posterior_events(bn, caseModel, 'testEv2', ie,0)
 #caseModel.print_case_model(full_case_model)
 base_y_pos = base_y_pos - 2
-figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)'''
+figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
 
 caseModel.add_evidence_scenario('testEv3', 1, ie, 0)
 find_posterior_events(bn, caseModel, 'testEv3', ie, 0)
@@ -355,27 +373,46 @@ figure.show()
 #print("evidence \t\t\t\t scn_1 \t\t\t scn_2 \t\t\t ratio (scn_1/scn_2)")
 
 '''
-caseModel.set_dict_of_all_ev_nodes(total_ev_dict)
-caseModel.evidence['constraint'] = [0, 1, 1]
-#print("new contraint: ", ie.posterior("constraint"))
-#caseModel.print_case_model(full_case_model)
-figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
 
+print("POSTERIOR CONSTRAINT", ie.posterior('constraint'))
+ie.setEvidence({'vE':1, 'car_with_bloodstains_found':0})
+ie.makeInference()
+print("POSTERIOR CONSTRAINT", ie.posterior('constraint'))
+ie.setEvidence({})
+ie.makeInference()
+
+print("POSTERIOR CONSTRAINT", ie.posterior('constraint'))
+ie.setEvidence({'vE':1, 'signs_of_violence':0, 'car_with_bloodstains_found': 0})
+ie.makeInference()
+print("POSTERIOR CONSTRAINT", ie.posterior('constraint'))
+ie.setEvidence({})
+ie.makeInference()
+'''
 caseModel.add_evidence_scenario('body_found', 1, ie, imported)
 find_posterior_events(bn, caseModel, 'body_found', ie, imported)
 base_y_pos = base_y_pos - 2
 figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
+print("body found ", colored(ie.posterior('constraint'), "green"))
 
+
+ie.setEvidence({'vE':1})
 caseModel.add_evidence_scenario('signs_of_violence', 1, ie, imported)
 find_posterior_events(bn, caseModel, 'signs_of_violence', ie, imported)
 base_y_pos = base_y_pos - 2
 figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
+print("signs of violence ", colored(ie.posterior('constraint'), "green"))
+'''
 
+
+ie.setEvidence({'vE':1})
 caseModel.add_evidence_scenario('weapon_found', 1, ie, imported)
 find_posterior_events(bn, caseModel, 'weapon_found', ie, imported)
 base_y_pos = base_y_pos - 2
 figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
+print("weapin found ", colored(ie.posterior('constraint'), "green"))
 
+figure.show()
+'''
 
 caseModel.add_evidence_scenario('phonecall_with_friend', 1, ie, imported)
 find_posterior_events(bn, caseModel, 'phonecall_with_friend', ie, imported)
@@ -417,6 +454,7 @@ find_posterior_events(bn, caseModel, 'phonecall_parents', ie, imported)
 base_y_pos = base_y_pos - 2
 figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
 '''
+
 
 '''caseModel.add_evidence_scenario('testimony_conflict', 1, ie)
 find_posterior_events(bn, caseModel, 'testimony_conflict', ie)

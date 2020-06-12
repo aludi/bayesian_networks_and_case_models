@@ -20,6 +20,7 @@ class Case:
         self.list_known_evidence = []
         self.prior_dict = {}
         self.event_list = []
+        self.prior_scenario = 1
 
     def add_prior_dict(self, new_prior_dict):
         self.prior_dict = new_prior_dict
@@ -85,7 +86,7 @@ class Case:
 
     def check_with_evidence(self, evidence_from_case_model):
         for key in evidence_from_case_model:
-            if "scn" in key or "constraint" in key:
+            if "scn" in key or "constraint" in key or "vE" in key:
                 continue
             if self.all_ev[key] != evidence_from_case_model[key]:
                 #print(key, self.all_ev[key], evidence_from_case_model[key])
@@ -101,6 +102,12 @@ class Case:
     # so we can easily find case height always
     def get_case_height(self):
         return self.area_case/self.scn_width
+
+    def get_first_prior_scenario(self):
+        return self.prior_scenario
+
+    def set_prior_scenario(self, num):
+        self.prior_scenario = num
 
     #def get_case_prop_areas_dict(self):
     #    return self.dict_area_value

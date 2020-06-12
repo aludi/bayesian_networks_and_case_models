@@ -41,7 +41,8 @@ class CaseModel:
         #print(entry,  truth_value)
         self.set_temp_evidence_for_visualization(entry, truth_value)
         if imported == 1:
-            truth_value = self.swap_vals(truth_value)   # for imported BN TODO: fix thiiiis
+            if entry != 'vE':
+                truth_value = self.swap_vals(truth_value)   # for imported BN TODO: fix thiiiis
         if entry in self.evidence.keys():
             if self.evidence[entry] != truth_value:
                 flag = 1
@@ -63,10 +64,11 @@ class CaseModel:
         elif flag == 0:
             self.add_new_evidence_scenario(entry, truth_value, posterior_entry, ie, width, imported)
 
-    def get_conditioned_area(self, entry, prior_dict):
+    def get_conditioned_area(self, base_case, entry, prior_dict):
         conditioned_area = 1
         for item in prior_dict:
             if item != entry:
+                print("item etc.", item, prior_dict[item], conditioned_area)
                 conditioned_area = prior_dict[item] * conditioned_area
         return conditioned_area
 
@@ -83,24 +85,44 @@ class CaseModel:
 
 
     def change_evidence_scenario(self, posterior_entry, posterior_of_scn, entry, new_truth_value):
+        print(posterior_entry, posterior_of_scn, entry, new_truth_value)
         for case in self.cases:
             old_case_ev_dict = dict(case.all_ev)
             index = int(case.scenario[-1])
             old_prior_dict = case.prior_dict
-            conditioned_area = self.get_conditioned_area(entry, old_prior_dict)
-            if old_case_ev_dict[entry] == new_truth_value:      # the case where the thing is negaated. We only need to update and swap around the posteriors...
+            conditioned_area = self.get_conditioned_area(case, entry, old_prior_dict)
+            if entry == 'vE':
+                #todo
+                continue
+            elif old_case_ev_dict[entry] == new_truth_value:      # the case where the thing is negaated. We only need to update and swap around the posteriors...
                 case.area_case = conditioned_area*posterior_entry[0]*posterior_of_scn[index]
                 case.prior_dict[entry] = posterior_entry[0]
             else:
                 case.area_case = conditioned_area*posterior_entry[1]*posterior_of_scn[index]
                 case.prior_dict[entry] = posterior_entry[1]
             case.scn_width = posterior_of_scn[index]
+            print(posterior_of_scn)
 
     def swap_vals(self, x):
         if x == 1:
             return 0
         if x == 0:
             return 1
+
+    def update_the_dict_with_priors(self, ie, imported):
+        posterior_contraint = ie.posterior("constraint").tolist()
+        print(posterior_contraint)
+        for case in self.cases:
+            name_scenario = case.scenario
+            index = int(name_scenario[-1])
+            prior_of_scenario = posterior_contraint[index]
+            prior_dict = dict(case.prior_dict)
+            if imported == 0:
+                prior_dict[name_scenario] = prior_of_scenario
+            else:
+                prior_dict[name_scenario] = 1 - prior_of_scenario
+            case.prior_dict = prior_dict
+
 
     def generate_new_case(self, base_case, entry, new_truth_value, ie, width, posterior_entry, index_posterior, imported):
 
@@ -112,7 +134,7 @@ class CaseModel:
 
         full_dict = dict(base_case.all_ev)
         new_evidence_dict = {}
-        new_evidence_dict['constraint'] = [0, 1, 1]
+        new_evidence_dict['vE'] = 1
         for x in base_case.all_ev:
             if base_case.all_ev[x] != None:
                 new_evidence_dict[x] = base_case.all_ev[x]
@@ -120,9 +142,9 @@ class CaseModel:
                 new_evidence_dict[x] = new_truth_value
                 full_dict[x] = new_truth_value
 
-        conditioned_area = self.get_conditioned_area(entry, base_case.prior_dict)
+        conditioned_area = self.get_conditioned_area(base_case, entry, base_case.prior_dict)
         old_prior_dict = dict(base_case.prior_dict)
-
+        print(old_prior_dict)
         ie.setEvidence(new_evidence_dict)           # on the first call, set evidence dict for positive atom, on the second call for the negated atom
         try:
             posterior_of_scn = ie.posterior('constraint')
@@ -130,12 +152,14 @@ class CaseModel:
 
             index = int(base_case.scenario[-1])
             new_width = width[index]
+            print("evidence:", new_evidence_dict)
+            print("posterior: ", posterior_of_scn)
+            print("\t posterior scenario: ", (1 - posterior_of_scn[index]))
 
-            '''print("scenario: ", base_case.scenario, "area: ",
-                  conditioned_area * (1 - posterior_of_scn[index]) * (posterior_entry[index_posterior]))
+            print("scenario: ", base_case.scenario, "area: ",
+                  conditioned_area * (posterior_of_scn[index]) * (posterior_entry[index_posterior]))
             print("\t conditioned: ", conditioned_area)
-            print("\t 1 - posterior scenario: ", (1 - posterior_of_scn[index]))
-            print("\t 1 - posterior entry: ", (posterior_entry[index_posterior]))'''
+            print("\t posterior entry: ", (posterior_entry[index_posterior]))
 
             if imported == 1:
                 new_case = single_case.Case("None", dict(new_evidence_dict), new_width,
@@ -174,6 +198,7 @@ class CaseModel:
                 list_1.append(self.generate_new_case(case, entry, truth_value, ie, width, posterior_entry, 0, imported))
                 #list_1.append(self.generate_new_case(case, entry, neg_truth_value, ie, width, posterior_entry, 1, imported))
             else:
+                print("adding new evidence: ", entry, truth_value)
                 list_1.append(self.generate_new_case(case, entry, truth_value, ie, width, posterior_entry, 1, imported))
                 list_1.append(self.generate_new_case(case, entry, neg_truth_value, ie, width, posterior_entry, 0, imported))
         self.cases = []
