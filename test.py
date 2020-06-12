@@ -253,6 +253,14 @@ if name_bn_imported == "real_yes_no_final_network_2020.net":
     bn.cpt('murder_with_gun')[{'seen_in_hallway': 'no', 'gun': 'yes', 'motive': 'yes', 'scn1': 'yes'}] = [0, 1]
     bn.cpt('murder_with_gun')[{'seen_in_hallway': 'no', 'gun': 'no', 'motive': 'yes', 'scn1': 'yes'}] = [0, 1]
 
+    bn.cpt('car_with_bloodstains_found')[{'flees_in_car': 'yes'}] = [0.9, 0.1]
+    bn.cpt('car_with_bloodstains_found')[{'flees_in_car': 'no'}] = [0.01, 0.99]
+
+    bn.cpt('flees_in_car')[{'murder_with_gun': 'yes', 'scn1': 'yes'}] = [1, 0]
+    bn.cpt('flees_in_car')[{'murder_with_gun': 'yes', 'scn1': 'no'}] = [0.6, 0.4]
+    bn.cpt('flees_in_car')[{'murder_with_gun': 'no', 'scn1': 'yes'}] = [1, 0]
+    bn.cpt('flees_in_car')[{'murder_with_gun': 'no', 'scn1': 'no'}] = [0.1, 0.9]
+
 ie = gum.LazyPropagation(bn)
 
 ie.setEvidence({'vE': 1})  # setting VIRTUAL (soft) evidence to force the constraint node.
@@ -459,34 +467,42 @@ base_y_pos = base_y_pos - 2
 figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
 print("testimony amnesia ", colored(ie.posterior('constraint'), "green"))
 
-figure.show()
-'''
-
 caseModel.add_evidence_scenario('car_with_bloodstains_found', 1, ie, imported)
 find_posterior_events(bn, caseModel, 'car_with_bloodstains_found', ie, imported)
 base_y_pos = base_y_pos - 2
 figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
+print("car with bloodstains ", colored(ie.posterior('constraint'), "green"))
+
 
 caseModel.add_evidence_scenario('testimony_conflict', 1, ie, imported)
 find_posterior_events(bn, caseModel, 'testimony_conflict', ie, imported)
 base_y_pos = base_y_pos - 2
 figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
+print("testimony conflict ", colored(ie.posterior('constraint'), "green"))
+
 
 caseModel.add_evidence_scenario('no_concrete_evidence_for_kidnapping', 1, ie, imported)
 find_posterior_events(bn, caseModel, 'no_concrete_evidence_for_kidnapping', ie, imported)
 base_y_pos = base_y_pos - 2
 figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
+print("no concrete evidence for kidnapping ", colored(ie.posterior('constraint'), "green"))
 
-caseModel.add_evidence_scenario('Medical_investigation_found_no_amnesia', 1, ie, imported)
-find_posterior_events(bn, caseModel, 'Medical_investigation_found_no_amnesia', ie, imported)
+
+caseModel.add_evidence_scenario('medical_investigation_found_no_amnesia', 1, ie, imported)
+find_posterior_events(bn, caseModel, 'medical_investigation_found_no_amnesia', ie, imported)
 base_y_pos = base_y_pos - 2
 figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
+print("medical investigation found no amnesia ", colored(ie.posterior('constraint'), "green"))
+
 
 caseModel.add_evidence_scenario('phonecall_parents', 1, ie, imported)
 find_posterior_events(bn, caseModel, 'phonecall_parents', ie, imported)
 base_y_pos = base_y_pos - 2
 figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
-'''
+print("phonecall parents ", colored(ie.posterior('constraint'), "green"))
+
+
+figure.show()
 
 
 '''caseModel.add_evidence_scenario('testimony_conflict', 1, ie)

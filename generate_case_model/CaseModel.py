@@ -194,7 +194,8 @@ class CaseModel:
             posterior_of_scn = ie.posterior('constraint')
             #print(prior_to_condition_area_on)
             index = int(base_case.scenario[-1])
-            new_width = width[index]
+            new_width = base_case.scn_width
+            print(new_width)
             #print("\t posterior scenario: ", (posterior_of_scn[index]))
             #print("evidence:", new_evidence_dict)
             #print("posterior entry", entry, colored(prior_to_condition_area_on[{entry:index_posterior}], 'yellow'))
@@ -331,7 +332,7 @@ class CaseModel:
             area_dict[case.scenario] = area_dict[case.scenario] + case.area_case
         for case in self.cases:
             scn = case.scenario
-            case.scn_width = area_dict[scn]
+            #case.scn_width = area_dict[scn]
         for case in self.cases:
             first_scn = case.scenario
             break
@@ -352,6 +353,7 @@ class CaseModel:
                 scn = case.scenario
 
             if val_val == True or val_val == False:
+                print(case.get_case_width())
                 width_of_case = case.get_case_width()
                 case.collect_known_evidence()
                 figure.add_trace(
@@ -362,7 +364,7 @@ class CaseModel:
                     go.Scatter(x=[(case.get_case_width() / 2) + width], y=[(height_of_case / 3) + stack],
                                text=[round(case.area_case, 2)], mode="text"))
                 figure.update_xaxes(range=[-0.1, 1.1])
-                figure.update_yaxes(range=[-0.1, 1.1])
+                figure.update_layout(yaxis_type='log')
 
             stack = stack + height_of_case
 
@@ -372,6 +374,8 @@ class CaseModel:
         figure.show()
 
     def get_figure_stacked(self, figure_stack, full_case_model, base_y_pos):
+        self.get_figure_scenario_based(full_case_model)
+        return
         area_dict = {}
         for case in self.cases:
             area_dict[case.scenario] = 0
@@ -379,7 +383,7 @@ class CaseModel:
             area_dict[case.scenario] = area_dict[case.scenario] + case.area_case
         for case in self.cases:
             scn = case.scenario
-            case.scn_width = area_dict[scn]
+            #case.scn_width = area_dict[scn]
         for case in self.cases:
             first_scn = case.scenario
             break
