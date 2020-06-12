@@ -3,6 +3,8 @@ from anytree import NodeMixin, Node, RenderTree, PreOrderIter
 import plotly.graph_objects as go
 import pyAgrum as gum
 import generate_case_model.Case as single_case
+from termcolor import colored
+
 
 
 class CaseModel:
@@ -54,7 +56,7 @@ class CaseModel:
         ie.setEvidence({})
         ie.makeInference()
         self.evidence[entry] = truth_value
-        posterior_entry = ie.posterior(entry).tolist()
+        posterior_entry = ie.posterior(entry)
         ie.setEvidence(self.evidence)
         posterior_of_scn = ie.posterior('constraint')
         width = posterior_of_scn
@@ -68,7 +70,7 @@ class CaseModel:
         conditioned_area = 1
         for item in prior_dict:
             if item != entry:
-                print("item etc.", item, prior_dict[item], conditioned_area)
+                #print("item etc.", item, prior_dict[item], conditioned_area)
                 conditioned_area = prior_dict[item] * conditioned_area
         return conditioned_area
 
@@ -139,32 +141,91 @@ class CaseModel:
             if base_case.all_ev[x] != None:
                 new_evidence_dict[x] = base_case.all_ev[x]
             if x == entry:
-                new_evidence_dict[x] = new_truth_value
+                #new_evidence_dict[x] = new_truth_value
                 full_dict[x] = new_truth_value
 
         conditioned_area = self.get_conditioned_area(base_case, entry, base_case.prior_dict)
         old_prior_dict = dict(base_case.prior_dict)
-        print(old_prior_dict)
-        ie.setEvidence(new_evidence_dict)           # on the first call, set evidence dict for positive atom, on the second call for the negated atom
+        #print(old_prior_dict)
+        ie.eraseAllEvidence()
+        ie.makeInference()
+        '''print(ie.nbrHardEvidence())
+        print(ie.posterior('constraint'))
+        print("MURDER WITH GUN before vE", ie.posterior('murder_with_gun'))
+        print("FLEES before vE", ie.posterior('flees_in_car'))
+        print(ie.posterior('scn1'))
+
+        print("new evidence dict", new_evidence_dict)'''
+        ie.setEvidence(new_evidence_dict)
+        ie.addAllTargets()
+
+        ie.makeInference()
+
+        '''print(ie.posterior('constraint'))
+
+        print(ie.nbrHardEvidence())
+
+        print("has evidence", ie.hasEvidence('vE'))
+
+        print("constraint after update with this evidence", ie.posterior('constraint'))
+        print(ie.posterior('scn1'))
+        print("MURDER WITH GUN after vE = 1", ie.posterior('murder_with_gun'))
+        print("FLEES after vE", ie.posterior('flees_in_car'))
+'''
+
+        prior_to_condition_area_on = ie.posterior(entry)
+        new_evidence_dict[entry] = 'yes'
+        #print("add new evidence to dict ", new_evidence_dict)
+        ie.setEvidence(new_evidence_dict)
+        ie.makeInference()
+        '''print(ie.posterior('constraint'))
+
+        print(ie.nbrHardEvidence())
+
+        print("constraint after this evidence: ", ie.posterior('constraint'), ie.posterior(entry))
+        print(ie.posterior('scn1'))
+        print("is target", ie.isTarget('murder_with_gun'))
+
+        print("AFTER FLEES  vE", ie.posterior('flees_in_car'))
+
+        print("AFTER MURDER", ie.posterior('murder_with_gun'))'''
+        # on the first call, set evidence dict for positive atom, on the second call for the negated atom
         try:
             posterior_of_scn = ie.posterior('constraint')
-            #print(" & ", '{:0.2e}'.format(1 - posterior_of_scn[1]), " & ", '{:0.2e}'.format(1 - posterior_of_scn[2]), "& ", '{:0.2e}'.format((1 - posterior_of_scn[1])/(1 - posterior_of_scn[2])), "\\\\")
-
+            #print(prior_to_condition_area_on)
             index = int(base_case.scenario[-1])
             new_width = width[index]
+            #print("\t posterior scenario: ", (posterior_of_scn[index]))
+            #print("evidence:", new_evidence_dict)
+            #print("posterior entry", entry, colored(prior_to_condition_area_on[{entry:index_posterior}], 'yellow'))
+            #print("scenario: ", base_case.scenario, "area: ",
+             #     colored(conditioned_area * (posterior_of_scn[index]) * (prior_to_condition_area_on[{entry:index_posterior}]), "blue"))
+
+            '''print("in here")
+            print(posterior_of_scn)
+            print(colored(posterior_of_scn[{'constraint':'NA'}], 'blue'))
+            print(colored(posterior_of_scn[{'constraint':'scn1'}], 'blue'))
+            print(colored(posterior_of_scn[{'constraint':'scn2'}], 'blue'))
+            print("posterior entry!!!")
+            print("posterior entry", entry, colored(prior_to_condition_area_on[{entry:'yes'}], 'yellow'))'''
+
+
+            #print(" & ", '{:0.2e}'.format(1 - posterior_of_scn[1]), " & ", '{:0.2e}'.format(1 - posterior_of_scn[2]), "& ", '{:0.2e}'.format((1 - posterior_of_scn[1])/(1 - posterior_of_scn[2])), "\\\\")
+
+            '''
             print("evidence:", new_evidence_dict)
             print("posterior: ", posterior_of_scn)
-            print("\t posterior scenario: ", (1 - posterior_of_scn[index]))
+            print("\t posterior scenario: ", (posterior_of_scn[index]))
 
             print("scenario: ", base_case.scenario, "area: ",
                   conditioned_area * (posterior_of_scn[index]) * (posterior_entry[index_posterior]))
             print("\t conditioned: ", conditioned_area)
             print("\t posterior entry: ", (posterior_entry[index_posterior]))
-
+            '''
             if imported == 1:
                 new_case = single_case.Case("None", dict(new_evidence_dict), new_width,
                                             conditioned_area * (1 - posterior_of_scn[index]) * (
-                                            posterior_entry[index_posterior]),
+                                            prior_to_condition_area_on[{entry:'yes'}]),
                                             # index_posterior always 1 on the first call and 0 on the second
                                             dict(full_dict),
                                             base_case.scenario)
@@ -172,7 +233,7 @@ class CaseModel:
 
                 new_case = single_case.Case("None", dict(new_evidence_dict), new_width,
                                             conditioned_area * posterior_of_scn[index] *
-                                            posterior_entry[index_posterior],
+                                            prior_to_condition_area_on[{entry:index_posterior}],
                                             # index_posterior always 1 on the first call and 0 on the second
                                             dict(full_dict),
                                             base_case.scenario)
