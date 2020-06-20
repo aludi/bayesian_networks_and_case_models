@@ -70,8 +70,9 @@ class CaseModel:
         conditioned_area = 1
         for item in prior_dict:
             if item != entry:
-                #print("item etc.", item, prior_dict[item], conditioned_area)
+                print("item etc.", item, prior_dict[item], conditioned_area)
                 conditioned_area = prior_dict[item] * conditioned_area
+        print("final conditioned area: ", conditioned_area)
         return conditioned_area
 
     def set_temp_evidence_for_visualization(self, entry, truth_value):
@@ -173,8 +174,9 @@ class CaseModel:
         print("FLEES after vE", ie.posterior('flees_in_car'))
 '''
 
-        prior_to_condition_area_on = ie.posterior(entry)
-        new_evidence_dict[entry] = 'yes'
+        prior_evidence_to_condition_area_on = ie.posterior(entry)
+        #new_evidence_dict[entry] = 'yes'
+        new_evidence_dict[entry] = new_truth_value
         #print("add new evidence to dict ", new_evidence_dict)
         ie.setEvidence(new_evidence_dict)
         ie.makeInference()
@@ -195,7 +197,6 @@ class CaseModel:
             #print(prior_to_condition_area_on)
             index = int(base_case.scenario[-1])
             new_width = base_case.scn_width
-            print(new_width)
             #print("\t posterior scenario: ", (posterior_of_scn[index]))
             #print("evidence:", new_evidence_dict)
             #print("posterior entry", entry, colored(prior_to_condition_area_on[{entry:index_posterior}], 'yellow'))
@@ -213,28 +214,35 @@ class CaseModel:
 
             #print(" & ", '{:0.2e}'.format(1 - posterior_of_scn[1]), " & ", '{:0.2e}'.format(1 - posterior_of_scn[2]), "& ", '{:0.2e}'.format((1 - posterior_of_scn[1])/(1 - posterior_of_scn[2])), "\\\\")
 
-            '''
-            print("evidence:", new_evidence_dict)
-            print("posterior: ", posterior_of_scn)
-            print("\t posterior scenario: ", (posterior_of_scn[index]))
 
-            print("scenario: ", base_case.scenario, "area: ",
-                  conditioned_area * (posterior_of_scn[index]) * (posterior_entry[index_posterior]))
+            #print("evidence:", new_evidence_dict)
+            #print("posterior: ", posterior_of_scn)
+            #print("\t posterior scenario: ", (posterior_of_scn[index]))
+
+            '''print("scenario: ", base_case.scenario, "area: ",
+                  conditioned_area * (1-posterior_of_scn[index]) * (prior_evidence_to_condition_area_on[{entry: 'yes'}]))
+            print("\t new scenario value: ", 1-posterior_of_scn[index])
             print("\t conditioned: ", conditioned_area)
-            print("\t posterior entry: ", (posterior_entry[index_posterior]))
-            '''
+            print("\t prior of the evidence: ", prior_evidence_to_condition_area_on[{entry :'yes'}])'''
+
             if imported == 1:
+                print(colored(conditioned_area * (1 - posterior_of_scn[index]) *
+                                            prior_evidence_to_condition_area_on[{entry: 'yes'}], "blue"))
                 new_case = single_case.Case("None", dict(new_evidence_dict), new_width,
                                             conditioned_area * (1 - posterior_of_scn[index]) * (
-                                            prior_to_condition_area_on[{entry:'yes'}]),
+                                            prior_evidence_to_condition_area_on[{entry :'yes'}]),
                                             # index_posterior always 1 on the first call and 0 on the second
                                             dict(full_dict),
                                             base_case.scenario)
+
             else:
+                print(colored(conditioned_area * (posterior_of_scn[index]) *
+                              prior_evidence_to_condition_area_on[{entry: new_truth_value}], "blue"), new_truth_value)
+                print(colored(ie.posterior('constraint'), "green"))
 
                 new_case = single_case.Case("None", dict(new_evidence_dict), new_width,
                                             conditioned_area * posterior_of_scn[index] *
-                                            prior_to_condition_area_on[{entry:index_posterior}],
+                                            prior_evidence_to_condition_area_on[{entry:new_truth_value}],
                                             # index_posterior always 1 on the first call and 0 on the second
                                             dict(full_dict),
                                             base_case.scenario)
@@ -353,7 +361,6 @@ class CaseModel:
                 scn = case.scenario
 
             if val_val == True or val_val == False:
-                print(case.get_case_width())
                 width_of_case = case.get_case_width()
                 case.collect_known_evidence()
                 figure.add_trace(
@@ -374,8 +381,7 @@ class CaseModel:
         figure.show()
 
     def get_figure_stacked(self, figure_stack, full_case_model, base_y_pos):
-        self.get_figure_scenario_based(full_case_model)
-        return
+
         area_dict = {}
         for case in self.cases:
             area_dict[case.scenario] = 0
@@ -395,7 +401,7 @@ class CaseModel:
         total_sum_area = 0
         # add the evidence
         figure.add_trace(
-            go.Scatter(x=[1.2], y=[stack + 1],
+            go.Scatter(x=[1.5], y=[stack + 1],
                        text=[self.get_string_evidence_added_this_step()], mode="text"))
         for case in self.cases:
             val_val = case.check_with_evidence(self.evidence)
@@ -410,19 +416,19 @@ class CaseModel:
                 stack = 0 + base_y_pos
                 scn = case.scenario
 
-            if val_val == True:
+            if val_val:
                 width_of_case = case.get_case_width()
                 case.collect_known_evidence()
                 figure.add_trace(
                     go.Scatter(x=[width, width, width+width_of_case, width+width_of_case], y=[stack, stack+height_of_case, stack+height_of_case, stack], fill="toself"))
                 figure.add_trace(
-                    go.Scatter(x=[(case.get_case_width()/4)+width], y=[(height_of_case/2) + stack], text=[case.return_known_events()], mode="text"))
+                    go.Scatter(x=[(case.get_case_width()/4)+width], y=[(height_of_case) + 1 + stack], text=[case.return_known_events()], mode="text"))
 
                 figure.add_trace(
                     go.Scatter(x=[(case.get_case_width() / 2) + width], y=[(height_of_case / 4) + stack],
-                               text=[round(case.area_case, 3)], mode="text"))
+                               text=[round(case.area_case, 5)], mode="text"))
 
-                figure.update_xaxes(range=[-0.1, 1.6])
+                figure.update_xaxes(range=[-0.1, 1.9])
                 next_round.append(case)
             stack = stack + height_of_case
 
