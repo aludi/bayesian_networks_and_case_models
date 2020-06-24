@@ -34,22 +34,17 @@ class CaseModel:
         list_of_scn_a_node_belongs_to.append(scn)
         self.dict_of_nodes[node] = list_of_scn_a_node_belongs_to
 
-    def add_evidence(self, entry, truth_value, ie):
-        self.evidence[entry] = truth_value
-        self.update_tree1(entry, truth_value, ie)
-        self.recalculate_area_for_plot()
 
     def add_evidence_scenario(self, entry, truth_value, ie, imported):
-        #print(entry,  truth_value)
+
         self.set_temp_evidence_for_visualization(entry, truth_value)
         if imported == 1:
             if entry != 'vE':
-                truth_value = self.swap_vals(truth_value)   # for imported BN TODO: fix thiiiis
+                truth_value = self.swap_vals(truth_value)   # for imported BN
         if entry in self.evidence.keys():
             if self.evidence[entry] != truth_value:
                 flag = 1
             if self.evidence[entry] == truth_value:
-                #print("IN FLAG 2")
                 flag = 2
         else:
             flag = 0
@@ -57,22 +52,24 @@ class CaseModel:
         ie.makeInference()
         self.evidence[entry] = truth_value
         posterior_entry = ie.posterior(entry)
+        #print(posterior_entry)
         ie.setEvidence(self.evidence)
         posterior_of_scn = ie.posterior('constraint')
         width = posterior_of_scn
+        #print("width", width)
 
         if flag == 1:
+
             self.change_evidence_scenario(posterior_entry, posterior_of_scn, entry, truth_value)
         elif flag == 0:
             self.add_new_evidence_scenario(entry, truth_value, posterior_entry, ie, width, imported)
 
     def get_conditioned_area(self, base_case, entry, prior_dict):
         conditioned_area = 1
+        print(prior_dict)
         for item in prior_dict:
-            if item != entry:
-                print("item etc.", item, prior_dict[item], conditioned_area)
+            if item != entry:# and 'scn' not in item:
                 conditioned_area = prior_dict[item] * conditioned_area
-        print("final conditioned area: ", conditioned_area)
         return conditioned_area
 
     def set_temp_evidence_for_visualization(self, entry, truth_value):
@@ -88,7 +85,7 @@ class CaseModel:
 
 
     def change_evidence_scenario(self, posterior_entry, posterior_of_scn, entry, new_truth_value):
-        print(posterior_entry, posterior_of_scn, entry, new_truth_value)
+        #print("change evidence", posterior_entry, posterior_of_scn, entry, new_truth_value)
         for case in self.cases:
             old_case_ev_dict = dict(case.all_ev)
             index = int(case.scenario[-1])
@@ -104,7 +101,7 @@ class CaseModel:
                 case.area_case = conditioned_area*posterior_entry[1]*posterior_of_scn[index]
                 case.prior_dict[entry] = posterior_entry[1]
             case.scn_width = posterior_of_scn[index]
-            print(posterior_of_scn)
+            #print(posterior_of_scn)
 
     def swap_vals(self, x):
         if x == 1:
@@ -114,7 +111,7 @@ class CaseModel:
 
     def update_the_dict_with_priors(self, ie, imported):
         posterior_contraint = ie.posterior("constraint").tolist()
-        print(posterior_contraint)
+        #print(posterior_contraint)
         for case in self.cases:
             name_scenario = case.scenario
             index = int(name_scenario[-1])
@@ -128,13 +125,7 @@ class CaseModel:
 
 
     def generate_new_case(self, base_case, entry, new_truth_value, ie, width, posterior_entry, index_posterior, imported):
-
-        '''if imported == 1:
-            print("generating new case with entry: ", entry, "and (swapped) truth value ", self.swap_vals(new_truth_value))
-        else:
-            print("generating new case with entry: ", entry, "and truth value ", new_truth_value)
-        print("evidence: ", base_case.all_ev)'''
-
+        print(entry, new_truth_value)
         full_dict = dict(base_case.all_ev)
         new_evidence_dict = {}
         new_evidence_dict['vE'] = 1
@@ -142,117 +133,48 @@ class CaseModel:
             if base_case.all_ev[x] != None:
                 new_evidence_dict[x] = base_case.all_ev[x]
             if x == entry:
-                #new_evidence_dict[x] = new_truth_value
                 full_dict[x] = new_truth_value
 
         conditioned_area = self.get_conditioned_area(base_case, entry, base_case.prior_dict)
         old_prior_dict = dict(base_case.prior_dict)
-        #print(old_prior_dict)
+        print(old_prior_dict)
         ie.eraseAllEvidence()
-        ie.makeInference()
-        '''print(ie.nbrHardEvidence())
-        print(ie.posterior('constraint'))
-        print("MURDER WITH GUN before vE", ie.posterior('murder_with_gun'))
-        print("FLEES before vE", ie.posterior('flees_in_car'))
-        print(ie.posterior('scn1'))
-
-        print("new evidence dict", new_evidence_dict)'''
-        ie.setEvidence(new_evidence_dict)
-        ie.addAllTargets()
-
-        ie.makeInference()
-
-        '''print(ie.posterior('constraint'))
-
-        print(ie.nbrHardEvidence())
-
-        print("has evidence", ie.hasEvidence('vE'))
-
-        print("constraint after update with this evidence", ie.posterior('constraint'))
-        print(ie.posterior('scn1'))
-        print("MURDER WITH GUN after vE = 1", ie.posterior('murder_with_gun'))
-        print("FLEES after vE", ie.posterior('flees_in_car'))
-'''
-
-        prior_evidence_to_condition_area_on = ie.posterior(entry)
-        #new_evidence_dict[entry] = 'yes'
-        new_evidence_dict[entry] = new_truth_value
-        #print("add new evidence to dict ", new_evidence_dict)
         ie.setEvidence(new_evidence_dict)
         ie.makeInference()
-        '''print(ie.posterior('constraint'))
-
-        print(ie.nbrHardEvidence())
-
-        print("constraint after this evidence: ", ie.posterior('constraint'), ie.posterior(entry))
-        print(ie.posterior('scn1'))
-        print("is target", ie.isTarget('murder_with_gun'))
-
-        print("AFTER FLEES  vE", ie.posterior('flees_in_car'))
-
-        print("AFTER MURDER", ie.posterior('murder_with_gun'))'''
-        # on the first call, set evidence dict for positive atom, on the second call for the negated atom
         try:
+            prior_evidence_to_condition_area_on = ie.posterior(entry)
+            new_evidence_dict[entry] = new_truth_value
+            ie.setEvidence(new_evidence_dict)
+            ie.makeInference()
             posterior_of_scn = ie.posterior('constraint')
-            #print(prior_to_condition_area_on)
+            print(posterior_of_scn)
             index = int(base_case.scenario[-1])
             new_width = base_case.scn_width
-            #print("\t posterior scenario: ", (posterior_of_scn[index]))
-            #print("evidence:", new_evidence_dict)
-            #print("posterior entry", entry, colored(prior_to_condition_area_on[{entry:index_posterior}], 'yellow'))
-            #print("scenario: ", base_case.scenario, "area: ",
-             #     colored(conditioned_area * (posterior_of_scn[index]) * (prior_to_condition_area_on[{entry:index_posterior}]), "blue"))
-
-            '''print("in here")
-            print(posterior_of_scn)
-            print(colored(posterior_of_scn[{'constraint':'NA'}], 'blue'))
-            print(colored(posterior_of_scn[{'constraint':'scn1'}], 'blue'))
-            print(colored(posterior_of_scn[{'constraint':'scn2'}], 'blue'))
-            print("posterior entry!!!")
-            print("posterior entry", entry, colored(prior_to_condition_area_on[{entry:'yes'}], 'yellow'))'''
-
-
-            #print(" & ", '{:0.2e}'.format(1 - posterior_of_scn[1]), " & ", '{:0.2e}'.format(1 - posterior_of_scn[2]), "& ", '{:0.2e}'.format((1 - posterior_of_scn[1])/(1 - posterior_of_scn[2])), "\\\\")
-
-
-            #print("evidence:", new_evidence_dict)
-            #print("posterior: ", posterior_of_scn)
-            #print("\t posterior scenario: ", (posterior_of_scn[index]))
-
-            '''print("scenario: ", base_case.scenario, "area: ",
-                  conditioned_area * (1-posterior_of_scn[index]) * (prior_evidence_to_condition_area_on[{entry: 'yes'}]))
-            print("\t new scenario value: ", 1-posterior_of_scn[index])
-            print("\t conditioned: ", conditioned_area)
-            print("\t prior of the evidence: ", prior_evidence_to_condition_area_on[{entry :'yes'}])'''
-
             if imported == 1:
-                print(colored(conditioned_area * (1 - posterior_of_scn[index]) *
-                                            prior_evidence_to_condition_area_on[{entry: 'yes'}], "blue"))
-                new_case = single_case.Case("None", dict(new_evidence_dict), new_width,
-                                            conditioned_area * (1 - posterior_of_scn[index]) * (
-                                            prior_evidence_to_condition_area_on[{entry :'yes'}]),
-                                            # index_posterior always 1 on the first call and 0 on the second
-                                            dict(full_dict),
-                                            base_case.scenario)
-
+                new_area = conditioned_area * (1 - posterior_of_scn[index]) * (
+                                            prior_evidence_to_condition_area_on[{entry : new_truth_value}])
             else:
-                print(colored(conditioned_area * (posterior_of_scn[index]) *
-                              prior_evidence_to_condition_area_on[{entry: new_truth_value}], "blue"), new_truth_value)
-                print(colored(ie.posterior('constraint'), "green"))
+                new_area = conditioned_area * (posterior_of_scn[index]) * (
+                    prior_evidence_to_condition_area_on[{entry: new_truth_value}])
 
-                new_case = single_case.Case("None", dict(new_evidence_dict), new_width,
-                                            conditioned_area * posterior_of_scn[index] *
-                                            prior_evidence_to_condition_area_on[{entry:new_truth_value}],
-                                            # index_posterior always 1 on the first call and 0 on the second
-                                            dict(full_dict),
-                                            base_case.scenario)
+            new_case = single_case.Case("placeholderName",
+                                        dict(new_evidence_dict),
+                                        new_width,
+                                        new_area,
+                                        dict(full_dict),
+                                        base_case.scenario)
+
             old_prior_dict[entry] = (posterior_entry[index_posterior])
+            print(posterior_entry)
+            print("old prior dict", old_prior_dict)
             new_case.add_prior_dict(dict(old_prior_dict))
         except Exception:
-            new_case = single_case.Case("Incompatible evidence", dict(new_evidence_dict), 0, 0,
+            print("exception")
+            new_case = single_case.Case("Incompatible evidence", dict(new_evidence_dict), 1, 0,
                                         # index_posterior always 1 on the first call and 0 on the second
                                         dict(full_dict),
                                         base_case.scenario)
+
         return new_case
 
 
@@ -264,16 +186,22 @@ class CaseModel:
                 neg_truth_value = 0
             else:
                 neg_truth_value = 1
+
             if imported == 1:
-                list_1.append(self.generate_new_case(case, entry, truth_value, ie, width, posterior_entry, 0, imported))
-                #list_1.append(self.generate_new_case(case, entry, neg_truth_value, ie, width, posterior_entry, 1, imported))
+                list_1.append(self.generate_new_case(case, entry, "yes", ie, width, posterior_entry, 0, imported))
+                list_1.append(self.generate_new_case(case, entry, "no", ie, width, posterior_entry, 1, imported))
+
             else:
-                print("adding new evidence: ", entry, truth_value)
                 list_1.append(self.generate_new_case(case, entry, truth_value, ie, width, posterior_entry, 1, imported))
-                list_1.append(self.generate_new_case(case, entry, neg_truth_value, ie, width, posterior_entry, 0, imported))
+                #list_1.append(self.generate_new_case(case, entry, neg_truth_value, ie, width, posterior_entry, 0, imported))
         self.cases = []
+        area_list = []
         for item in list_1:
             self.add_case(item)
+            area_list.append(item.area_case)
+
+
+        #print("\n ratio cases (sn2/sn1): ", area_list[0]/area_list[1])
 
     def find_posterior_events(self, entry, parent_of_entry, ie, imported):
         for case in self.cases:
@@ -353,14 +281,15 @@ class CaseModel:
         for case in self.cases:
             val_val = case.check_with_evidence(self.evidence)
             total_sum_area = case.area_case + total_sum_area
-            height_of_case = case.get_case_height()
+
             # if scenario changes, stack-height must reset and we must move to the right
             if case.scenario != scn:
                 width = width_of_case + width
                 stack = 0
                 scn = case.scenario
 
-            if val_val == True or val_val == False:
+            if (val_val == True or val_val == False) and case.name != "Incompatible evidence":
+                height_of_case = case.get_case_height()
                 width_of_case = case.get_case_width()
                 case.collect_known_evidence()
                 figure.add_trace(
@@ -380,10 +309,50 @@ class CaseModel:
         print(total_sum_area)
         figure.show()
 
+    def get_single_case_model_picture(self):
+        figure = go.Figure()
+        total_sum_area = 0
+        scn = 'x'
+        width_of_case = 0
+        width = 0
+        stack = 0
+        figure.add_trace(
+            go.Scatter(x=[1.5], y=[stack + 1],
+                       text=[self.get_string_evidence_added_this_step()], mode="text"))
+        for case in self.cases:
+            val_val = case.check_with_evidence(self.evidence)
+            total_sum_area = case.area_case + total_sum_area
+            height_of_case = case.get_case_height()
+
+            if case.scenario != scn:
+                width = width_of_case + width
+                stack = 0
+                scn = case.scenario
+
+            if val_val or not val_val:
+                width_of_case = case.get_case_width()
+                case.collect_known_evidence()
+                figure.add_trace(
+                    go.Scatter(x=[width, width, width+width_of_case, width+width_of_case], y=[stack, stack+height_of_case, stack+height_of_case, stack], fill="toself"))
+                figure.add_trace(
+                    go.Scatter(x=[(case.get_case_width()/4)+width], y=[(height_of_case) + stack+0.01], text=[case.return_known_events()+['{:0.2e}'.format(case.area_case)]], mode="text"))
+
+                '''figure.add_trace(
+                    go.Scatter(x=[(case.get_case_width() / 2) + width], y=[(height_of_case) + stack],
+                               text=['{:0.2e}'.format(case.area_case)], mode="text"))
+                '''
+            stack = stack + height_of_case
+        figure.update_xaxes(range=[-0.1, 1.9])
+
+        print(total_sum_area)
+        figure.show()
+
+
     def get_figure_stacked(self, figure_stack, full_case_model, base_y_pos):
 
         area_dict = {}
         for case in self.cases:
+            #print(case.scn_width, case.area_case)
             area_dict[case.scenario] = 0
         for case in self.cases:
             area_dict[case.scenario] = area_dict[case.scenario] + case.area_case
@@ -403,36 +372,46 @@ class CaseModel:
         figure.add_trace(
             go.Scatter(x=[1.5], y=[stack + 1],
                        text=[self.get_string_evidence_added_this_step()], mode="text"))
+        sum_1 = 0
+        sum_2 = 0
         for case in self.cases:
             val_val = case.check_with_evidence(self.evidence)
             total_sum_area = case.area_case + total_sum_area
             #print(case.all_ev, case.get_case_width(), case.get_case_area())
+            sum_2 = case.get_case_area() + sum_2
             height_of_case = case.get_case_height()
             # if scenario changes, stack-height must reset and we must move to the right
             #print(case.scenario, scn)
 
             if case.scenario != scn:
                 width = width_of_case + width
+
                 stack = 0 + base_y_pos
                 scn = case.scenario
 
-            if val_val:
+            if val_val or not val_val:
+
                 width_of_case = case.get_case_width()
                 case.collect_known_evidence()
                 figure.add_trace(
                     go.Scatter(x=[width, width, width+width_of_case, width+width_of_case], y=[stack, stack+height_of_case, stack+height_of_case, stack], fill="toself"))
                 figure.add_trace(
-                    go.Scatter(x=[(case.get_case_width()/4)+width], y=[(height_of_case) + 1 + stack], text=[case.return_known_events()], mode="text"))
+                    go.Scatter(x=[(case.get_case_width()/4)+width], y=[(height_of_case) + stack+0.1], text=[case.return_known_events()+['{:0.2e}'.format(case.area_case)]], mode="text"))
 
-                figure.add_trace(
-                    go.Scatter(x=[(case.get_case_width() / 2) + width], y=[(height_of_case / 4) + stack],
-                               text=[round(case.area_case, 5)], mode="text"))
+                '''figure.add_trace(
+                    go.Scatter(x=[(case.get_case_width() / 2) + width], y=[(height_of_case) + stack],
+                               text=['{:0.2e}'.format(case.area_case)], mode="text"))
+                '''
+
+                sum_1 = case.area_case + sum_1
 
                 figure.update_xaxes(range=[-0.1, 1.9])
                 next_round.append(case)
             stack = stack + height_of_case
+        print("SUM:", sum_1)
+        print("try SUM:", sum_2)
 
-        #print("&",'{:0.2e}'.format(next_round[1].area_case), "&", '{:0.2e}'.format(next_round[0].area_case), "&", '{:0.2e}'.format(next_round[1].area_case/next_round[0].area_case), "\\\\")
+        #print("&",'{:0.2e}'.format(next_round[1].area_case), "&", '{:0.2e}'.format(next_round[0].area_case), "&", round(next_round[1].area_case/next_round[0].area_case, 4), "\\\\")
 
         #self.cases = next_round # pruning
         #print("\n")
