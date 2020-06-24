@@ -137,7 +137,7 @@ class CaseModel:
 
         conditioned_area = self.get_conditioned_area(base_case, entry, base_case.prior_dict)
         old_prior_dict = dict(base_case.prior_dict)
-        print(old_prior_dict)
+        #print(old_prior_dict)
         ie.eraseAllEvidence()
         ie.setEvidence(new_evidence_dict)
         ie.makeInference()
@@ -147,7 +147,6 @@ class CaseModel:
             ie.setEvidence(new_evidence_dict)
             ie.makeInference()
             posterior_of_scn = ie.posterior('constraint')
-            print(posterior_of_scn)
             index = int(base_case.scenario[-1])
             new_width = base_case.scn_width
             if imported == 1:
@@ -165,11 +164,11 @@ class CaseModel:
                                         base_case.scenario)
 
             old_prior_dict[entry] = (posterior_entry[index_posterior])
-            print(posterior_entry)
-            print("old prior dict", old_prior_dict)
+            '''print(posterior_entry)
+            print("old prior dict", old_prior_dict)'''
             new_case.add_prior_dict(dict(old_prior_dict))
         except Exception:
-            print("exception")
+            'rint("exception")'
             new_case = single_case.Case("Incompatible evidence", dict(new_evidence_dict), 1, 0,
                                         # index_posterior always 1 on the first call and 0 on the second
                                         dict(full_dict),
@@ -189,7 +188,7 @@ class CaseModel:
 
             if imported == 1:
                 list_1.append(self.generate_new_case(case, entry, "yes", ie, width, posterior_entry, 0, imported))
-                list_1.append(self.generate_new_case(case, entry, "no", ie, width, posterior_entry, 1, imported))
+                #list_1.append(self.generate_new_case(case, entry, "no", ie, width, posterior_entry, 1, imported))      # uncomment for creating negated-evidence cases
 
             else:
                 list_1.append(self.generate_new_case(case, entry, truth_value, ie, width, posterior_entry, 1, imported))
@@ -344,7 +343,7 @@ class CaseModel:
             stack = stack + height_of_case
         figure.update_xaxes(range=[-0.1, 1.9])
 
-        print(total_sum_area)
+        #print(total_sum_area)
         figure.show()
 
 
@@ -408,8 +407,8 @@ class CaseModel:
                 figure.update_xaxes(range=[-0.1, 1.9])
                 next_round.append(case)
             stack = stack + height_of_case
-        print("SUM:", sum_1)
-        print("try SUM:", sum_2)
+        #print("SUM:", sum_1)
+
 
         #print("&",'{:0.2e}'.format(next_round[1].area_case), "&", '{:0.2e}'.format(next_round[0].area_case), "&", round(next_round[1].area_case/next_round[0].area_case, 4), "\\\\")
 

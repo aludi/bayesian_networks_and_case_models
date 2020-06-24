@@ -167,11 +167,10 @@ def running_test_2():
     initial.decrease_y_base()
     new_figure = caseModel.get_figure_stacked(new_figure, full_case_model, initial.get_y_base())
     initial.set_figure(new_figure)
-    caseModel.get_single_case_model_picture()
-    exit()
 
-    '''print("body found ", colored(ie.posterior('constraint'), "green"))
-    print("ratio bn (scn2/scn1)", ie.posterior('constraint').tolist()[1]/ie.posterior('constraint').tolist()[2])'''
+
+    '''print("body found ", colored(ie.posterior('constraint'), "green"))'''
+    '''print("ratio bn (scn2/scn1)", ie.posterior('constraint').tolist()[1]/ie.posterior('constraint').tolist()[2])'''
 
     print("signs\_of\_violence", end=' ')
 
