@@ -1,0 +1,412 @@
+net 
+{
+    node_size = (130 55);
+}
+
+node scn2
+{
+    label = "scn2";
+    position = (892 375);
+    states = ("yes"  "no");
+    diagnosistype = "AUXILIARY";
+    DSLxSUBMODEL = "Root Submodel";
+    ismapvariable = "false";
+    ID = "variable0";
+    DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+    excludepolicy = "include whole CPT";
+}
+
+node p_was_kidnapped
+{
+    label = "p_was_kidnapped";
+    position = (858 260);
+    states = ("yes"  "no");
+    diagnosistype = "AUXILIARY";
+    DSLxSUBMODEL = "Root Submodel";
+    ismapvariable = "false";
+    ID = "variable3";
+    DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+    excludepolicy = "include whole CPT";
+}
+
+node p_has_amnesia
+{
+    label = "p_has_amnesia";
+    position = (994 264);
+    states = ("yes"  "no");
+    diagnosistype = "AUXILIARY";
+    DSLxSUBMODEL = "Root Submodel";
+    ismapvariable = "false";
+    ID = "variable4";
+    DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+    excludepolicy = "include whole CPT";
+}
+
+node testimony_amnesia
+{
+    label = "testimony_amnesia";
+    position = (946 167);
+    states = ("yes"  "no");
+    diagnosistype = "AUXILIARY";
+    DSLxSUBMODEL = "Root Submodel";
+    ismapvariable = "false";
+    ID = "variable5";
+    DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+    excludepolicy = "include whole CPT";
+}
+
+node scn1
+{
+    label = "scn1";
+    position = (497 364);
+    states = ("yes"  "no");
+    diagnosistype = "AUXILIARY";
+    DSLxSUBMODEL = "Root Submodel";
+    ismapvariable = "false";
+    ID = "variable22";
+    DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+    excludepolicy = "include whole CPT";
+}
+
+node motive
+{
+    label = "motive";
+    position = (231 290);
+    states = ("yes"  "no");
+    diagnosistype = "AUXILIARY";
+    DSLxSUBMODEL = "Root Submodel";
+    ismapvariable = "false";
+    ID = "variable19";
+    DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+    excludepolicy = "include whole CPT";
+}
+
+node gun
+{
+    label = "gun";
+    position = (224 156);
+    states = ("yes"  "no");
+    diagnosistype = "AUXILIARY";
+    DSLxSUBMODEL = "Root Submodel";
+    ismapvariable = "false";
+    ID = "variable20";
+    DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+    excludepolicy = "include whole CPT";
+}
+
+node seen_in_hallway
+{
+    label = "seen_in_hallway";
+    position = (229 60);
+    states = ("yes"  "no");
+    diagnosistype = "AUXILIARY";
+    DSLxSUBMODEL = "Root Submodel";
+    ismapvariable = "false";
+    ID = "variable24";
+    DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+    excludepolicy = "include whole CPT";
+}
+
+node murder_with_gun
+{
+    label = "murder_with_gun";
+    position = (420 197);
+    states = ("yes"  "no");
+    diagnosistype = "AUXILIARY";
+    DSLxSUBMODEL = "Root Submodel";
+    ismapvariable = "false";
+    ID = "variable21";
+    DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+    excludepolicy = "include whole CPT";
+}
+
+node body_found
+{
+    label = "body_found";
+    position = (492 4);
+    states = ("yes"  "no");
+    diagnosistype = "AUXILIARY";
+    DSLxSUBMODEL = "Root Submodel";
+    ismapvariable = "false";
+    ID = "variable28";
+    DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+    excludepolicy = "include whole CPT";
+}
+
+node weapon_found
+{
+    label = "weapon_found";
+    position = (73 45);
+    states = ("yes"  "no");
+    diagnosistype = "AUXILIARY";
+    DSLxSUBMODEL = "Root Submodel";
+    ismapvariable = "false";
+    ID = "variable23";
+    DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+    excludepolicy = "include whole CPT";
+}
+
+node phonecall_with_friend
+{
+    label = "phonecall_with_friend";
+    position = (224 -27);
+    states = ("yes"  "no");
+    diagnosistype = "AUXILIARY";
+    DSLxSUBMODEL = "Root Submodel";
+    ismapvariable = "false";
+    ID = "variable27";
+    DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+    excludepolicy = "include whole CPT";
+}
+
+node flees_in_car
+{
+    label = "flees_in_car";
+    position = (507 99);
+    states = ("yes"  "no");
+    diagnosistype = "AUXILIARY";
+    DSLxSUBMODEL = "Root Submodel";
+    ismapvariable = "false";
+    ID = "variable25";
+    DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+    excludepolicy = "include whole CPT";
+}
+
+node car_with_bloodstains_found
+{
+    label = "car_with_bloodstains_found";
+    position = (704 -23);
+    states = ("yes"  "no");
+    diagnosistype = "AUXILIARY";
+    DSLxSUBMODEL = "Root Submodel";
+    ismapvariable = "false";
+    ID = "variable29";
+    DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+    excludepolicy = "include whole CPT";
+}
+
+node testimony_conflict
+{
+    label = "testimony_conflict";
+    position = (80 236);
+    states = ("yes"  "no");
+    diagnosistype = "AUXILIARY";
+    DSLxSUBMODEL = "Root Submodel";
+    ismapvariable = "false";
+    ID = "variable26";
+    DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+    excludepolicy = "include whole CPT";
+}
+
+node testimony_kidnapping
+{
+    label = "testimony_kidnapping";
+    position = (808 153);
+    states = ("yes"  "no");
+    diagnosistype = "AUXILIARY";
+    DSLxSUBMODEL = "Root Submodel";
+    ismapvariable = "false";
+    ID = "variable6";
+    DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+    excludepolicy = "include whole CPT";
+}
+
+node constraint
+{
+    label = "constraint";
+    position = (679 334);
+    states = ("NA"  "scn1"  "scn2");
+    diagnosistype = "AUXILIARY";
+    DSLxSUBMODEL = "Root Submodel";
+    ismapvariable = "false";
+    ID = "variable1";
+    DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+    excludepolicy = "include whole CPT";
+}
+
+node confession_to_parents
+{
+    label = "confession_to_parents";
+    position = (594 234);
+    states = ("yes"  "no");
+}
+
+node phonecall_parents
+{
+    label = "phonecall_parents";
+    position = (661 115);
+    states = ("yes"  "no");
+}
+
+node no_concrete_evidence_for_kidnapping
+{
+    label = "no_concrete_evidence_for_kidnapping";
+    position = (891 64);
+    states = ("yes"  "no");
+}
+
+node medical_investigation_found_no_amnesia
+{
+    label = "medical_investigation_found_no_amnesia";
+    position = (1075 166);
+    states = ("yes"  "no");
+}
+
+node signs_of_violence
+{
+    label = "signs_of_violence";
+    position = (363 70);
+    states = ("yes"  "no");
+}
+
+potential (scn2 |)
+{
+    data = (0.50000000 0.50000000);
+}
+
+potential (p_was_kidnapped | scn2)
+{
+    data = ((1.00000000 0.00000000)
+        (0.00000000 1.00000000));
+}
+
+potential (p_has_amnesia | scn2)
+{
+    data = ((1.00000000 0.00000000)
+        (0.00000000 1.00000000));
+}
+
+potential (testimony_amnesia | p_has_amnesia)
+{
+    data = ((1.00000000 0.00000000)
+        (0.60000000 0.40000000));
+}
+
+potential (scn1 |)
+{
+    data = (0.01000000 0.99000000);
+}
+
+potential (motive | scn1)
+{
+    data = ((1.00000000 0.00000000)
+        (0.10000000 0.90000000));
+}
+
+potential (gun | scn1 motive)
+{
+    data = (((1.00000000 0.00000000)
+        (0.00000000 1.00000000))
+        ((0.20000000 0.80000000)
+        (0.00000000 1.00000000)));
+}
+
+potential (seen_in_hallway | scn1)
+{
+    data = ((1.00000000 0.00000000)
+        (0.50000000 0.50000000));
+}
+
+potential (murder_with_gun | scn1 motive gun seen_in_hallway)
+{
+    data = (((((1.00000000 0.00000000)
+        (0.00000000 1.00000000))
+        ((0.00000000 1.00000000)
+        (0.00000000 1.00000000)))
+        (((0.00000000 1.00000000)
+        (0.00000000 1.00000000))
+        ((0.00000000 1.00000000)
+        (0.00000000 1.00000000))))
+        ((((0.20000000 0.80000000)
+        (0.00000000 1.00000000))
+        ((0.00000000 1.00000000)
+        (0.00000000 1.00000000)))
+        (((0.10000000 0.90000000)
+        (0.00000000 1.00000000))
+        ((0.00000000 1.00000000)
+        (0.00000000 1.00000000)))));
+}
+
+potential (body_found | murder_with_gun)
+{
+    data = ((0.90000000 0.10000000)
+        (0.01000000 0.99000000));
+}
+
+potential (weapon_found | gun)
+{
+    data = ((0.99000000 0.01000000)
+        (0.01000000 0.99000000));
+}
+
+potential (phonecall_with_friend | seen_in_hallway)
+{
+    data = ((1.00000000 0.00000000)
+        (0.00000000 1.00000000));
+}
+
+potential (flees_in_car | scn1 murder_with_gun)
+{
+    data = (((1.00000000 0.00000000)
+        (1.00000000 0.00000000))
+        ((0.60000000 0.40000000)
+        (0.10000000 0.90000000)));
+}
+
+potential (car_with_bloodstains_found | flees_in_car)
+{
+    data = ((0.90000000 0.10000000)
+        (0.01000000 0.99000000));
+}
+
+potential (testimony_conflict | motive)
+{
+    data = ((0.80000000 0.20000000)
+        (0.40000000 0.60000000));
+}
+
+potential (testimony_kidnapping | p_was_kidnapped)
+{
+    data = ((1.00000000 0.00000000)
+        (0.60000000 0.40000000));
+}
+
+potential (constraint | scn1 scn2)
+{
+    data = (((1.00000000 0.00000000 0.00000000)
+        (0.00000000 1.00000000 0.00000000))
+        ((0.00000000 0.00000000 1.00000000)
+        (1.00000000 0.00000000 0.00000000)));
+}
+
+potential (confession_to_parents | scn1 murder_with_gun)
+{
+    data = (((1.00000000 0.00000000)
+        (0.00000000 1.00000000))
+        ((0.00000000 1.00000000)
+        (0.00000000 1.00000000)));
+}
+
+potential (phonecall_parents | confession_to_parents)
+{
+    data = ((1.00000000 0.00000000)
+        (0.20000000 0.80000000));
+}
+
+potential (no_concrete_evidence_for_kidnapping | p_was_kidnapped)
+{
+    data = ((0.10000000 0.90000000)
+        (0.80000000 0.20000000));
+}
+
+potential (medical_investigation_found_no_amnesia | p_has_amnesia)
+{
+    data = ((0.10000000 0.90000000)
+        (0.70000000 0.30000000));
+}
+
+potential (signs_of_violence | murder_with_gun)
+{
+    data = ((0.90000000 0.10000000)
+        (0.10000000 0.90000000));
+}
