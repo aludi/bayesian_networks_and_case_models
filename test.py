@@ -4,6 +4,7 @@ import generate_case_model.Prop as prop
 import generate_case_model.Running as running
 import generate_case_model.Moja as moja
 import generate_case_model.CaseModelFigure as cmFig
+import unit_tests as unit_test
 
 import pyAgrum as gum
 #from termcolor import colored
@@ -102,46 +103,23 @@ def createBN_no_constraint_node():
     bn.cpt(testEv3)[{'test1': 'true', 'test2': 'true'}] = [0, 1]
     return bn
 
-def print_ratios(combined):
-    '''print(combined.ie.posterior('aux'))
-    print(combined.casemodel.cases[0].area, combined.casemodel.cases[1].area, combined.casemodel.cases[2].area)'''
-    print("\t RATIOS IN AUX NODE \t RATIOS IN CASES")
-    print("\t", combined.ie.posterior('aux')[{'aux':'scn_1'}]/combined.ie.posterior('aux')[{'aux':'scn_2'}], "\t", combined.casemodel.cases[0].area / combined.casemodel.cases[1].area)
-    print("\t", combined.ie.posterior('aux')[{'aux':'scn_2'}]/combined.ie.posterior('aux')[{'aux':'scn_3'}], "\t", combined.casemodel.cases[1].area / combined.casemodel.cases[2].area)
-    print("\t", combined.ie.posterior('aux')[{'aux':'scn_3'}]/combined.ie.posterior('aux')[{'aux':'scn_1'}], "\t", combined.casemodel.cases[2].area / combined.casemodel.cases[0].area)
-    print("\n")
 
-
+def case_model_step(combined, cm_figure, evidence, truth_value):
+    combined.add_evidence(evidence, truth_value)
+    cm_figure.get_figure(evidence, truth_value)
+    unit_test.check_ratios(combined)
 
 
 def running_test_3():
-    imported = 0
     bn = createBN_no_constraint_node()
-    combined = moja.Moja(bn)
+    combined = moja.Moja(bn, ['true', 'false'])
     cm_figure = cmFig.CaseModelFigure(combined.casemodel)
-    cm_figure.get_figure()
-
-    '''combined.add_evidence('test1', 'true')
-    cm_figure.get_figure()
-    print_ratios(combined)
-    cm_figure.show()'''
-
-    combined.add_evidence('testEv3', 'false')
-    cm_figure.get_figure()
-    print_ratios(combined)
+    cm_figure.get_figure("", "")
+    case_model_step(combined, cm_figure, 'testEv3', 'false')
+    case_model_step(combined, cm_figure, 'testEv3', 'true')
+    case_model_step(combined, cm_figure, 'testEv2', 'true')
+    case_model_step(combined, cm_figure, 'testEv1', 'false')
     cm_figure.show()
-
-    combined.add_evidence('testEv3', 'true')
-    cm_figure.get_figure()
-    print(combined.ie.posterior('aux'))
-    print(combined.casemodel.cases[0].area)
-    print(combined.casemodel.cases[1].area)
-    print(combined.casemodel.cases[2].area)
-    print_ratios(combined)
-    cm_figure.show()
-
-
-
 
 
 def running_test_1():
@@ -205,6 +183,54 @@ def running_test_1():
     initial.set_figure(new_figure)
 
     initial.get_figure().show()
+
+
+
+
+def running_test_4():
+    name_bn_imported = "real_yes_no_final_network_2020.net"
+    bn = gum.loadBN(name_bn_imported)
+
+    # only for Jurix 2019 paper  -> something's weird with Genie
+    bn.cpt('gun')[{'motive': 'yes', 'scn1': 'yes'}] = [1, 0]
+    bn.cpt('gun')[{'motive': 'yes', 'scn1': 'no'}] = [0.2, 0.8]
+    bn.cpt('gun')[{'motive': 'no', 'scn1': 'yes'}] = [0, 1]
+    bn.cpt('gun')[{'motive': 'no', 'scn1': 'no'}] = [0, 1]
+
+    bn.cpt('murder_with_gun')[{'seen_in_hallway': 'yes', 'gun': 'yes', 'motive': 'yes', 'scn1': 'no'}] = [0.2, 0.8]
+    bn.cpt('murder_with_gun')[{'seen_in_hallway': 'yes', 'gun': 'yes', 'motive': 'no', 'scn1': 'no'}] = [0.1, 0.9]
+    bn.cpt('murder_with_gun')[{'seen_in_hallway': 'no', 'gun': 'yes', 'motive': 'yes', 'scn1': 'yes'}] = [0, 1]
+    bn.cpt('murder_with_gun')[{'seen_in_hallway': 'no', 'gun': 'no', 'motive': 'yes', 'scn1': 'yes'}] = [0, 1]
+
+    bn.cpt('car_with_bloodstains_found')[{'flees_in_car': 'yes'}] = [0.9, 0.1]
+    bn.cpt('car_with_bloodstains_found')[{'flees_in_car': 'no'}] = [0.01, 0.99]
+
+    bn.cpt('flees_in_car')[{'murder_with_gun': 'yes', 'scn1': 'yes'}] = [1, 0]
+    bn.cpt('flees_in_car')[{'murder_with_gun': 'yes', 'scn1': 'no'}] = [0.6, 0.4]
+    bn.cpt('flees_in_car')[{'murder_with_gun': 'no', 'scn1': 'yes'}] = [1, 0]
+    bn.cpt('flees_in_car')[{'murder_with_gun': 'no', 'scn1': 'no'}] = [0.1, 0.9]
+
+
+    combined = moja.Moja(bn, ['yes', 'no'])
+    cm_figure = cmFig.CaseModelFigure(combined.casemodel)
+    cm_figure.get_figure("", "")
+
+
+    case_model_step(combined, cm_figure, 'body_found', 'yes')
+    case_model_step(combined, cm_figure, 'signs_of_violence', 'yes')
+    case_model_step(combined, cm_figure, 'weapon_found', 'yes')
+    cm_figure.show()
+    case_model_step(combined, cm_figure, 'phonecall_with_friend', 'yes')
+    case_model_step(combined, cm_figure, 'testimony_kidnapping', 'yes')
+    case_model_step(combined, cm_figure, 'testimony_amnesia', 'yes')
+    cm_figure.show()
+    case_model_step(combined, cm_figure, 'car_with_bloodstains_found', 'yes')
+    case_model_step(combined, cm_figure, 'testimony_conflict', 'yes')
+    case_model_step(combined, cm_figure, 'no_concrete_evidence_for_kidnapping', 'yes')
+    cm_figure.show()
+    case_model_step(combined, cm_figure, 'medical_investigation_found_no_amnesia', 'yes')
+    case_model_step(combined, cm_figure, 'phonecall_parents', 'yes')
+    cm_figure.show()
 
 
 def running_test_2():
@@ -381,7 +407,7 @@ def running_test_2():
 
 
 ### start here ###
-test = 3
+test = 4
 if test == 1:
     running_test_1()
 
@@ -390,3 +416,6 @@ if test == 2:
 
 if test == 3:
     running_test_3()
+
+if test == 4:
+    running_test_4()
