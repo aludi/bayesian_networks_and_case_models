@@ -2,8 +2,11 @@ import generate_case_model.Case as single_case
 import generate_case_model.CaseModel as case_model
 import generate_case_model.Prop as prop
 import generate_case_model.Running as running
+import generate_case_model.Moja as moja
+import generate_case_model.CaseModelFigure as cmFig
+
 import pyAgrum as gum
-from termcolor import colored
+#from termcolor import colored
 
 
 
@@ -57,6 +60,90 @@ def createBN():
     return bn
 
 
+def createBN_no_constraint_node():
+    bn = gum.BayesNet("test")
+    scn_1 = bn.add(gum.LabelizedVariable('scn_1', 'scn_1', ['false', 'true']))
+    scn_2 = bn.add(gum.LabelizedVariable('scn_2', 'scn_2', ['false', 'true']))
+    scn_3 = bn.add(gum.LabelizedVariable('scn_3', 'leak', ['false', 'true']))
+
+
+    test1 = bn.add(gum.LabelizedVariable('test1', 'test1', ['false', 'true']))
+    test2 = bn.add(gum.LabelizedVariable('test2', 'test2', ['false', 'true']))
+    bn.addArc(scn_1, test1)
+    bn.addArc(scn_2, test2)
+
+    testEv1 = bn.add(gum.LabelizedVariable('testEv1', 'testEv1', ['false', 'true']))
+    testEv2 = bn.add(gum.LabelizedVariable('testEv2', 'testEv2', ['false', 'true']))
+    testEv3 = bn.add(gum.LabelizedVariable('testEv3', 'testEv3', ['false', 'true']))
+
+    bn.addArc(test1, testEv1)
+    bn.addArc(test2, testEv2)
+    bn.addArc(test1, testEv3)
+    bn.addArc(test2, testEv3)
+
+    bn.cpt(scn_1).fillWith([0.8, 0.2])  # on purpose
+    bn.cpt(scn_2).fillWith([0.3, 0.7])  # probability of accident
+    bn.cpt(scn_3).fillWith([0.9, 0.1])  # something else happened
+
+
+    bn.cpt(test1)[{'scn_1': 'false'}] = [0.8, 0.2]
+    bn.cpt(test1)[{'scn_1': 'true'}] = [0, 1]
+
+    bn.cpt(test2)[{'scn_2': 'false'}] = [0.6, 0.4]
+    bn.cpt(test2)[{'scn_2': 'true'}] = [0.02, 0.98]
+
+    bn.cpt(testEv1)[{'test1': 'false'}] = [0.67, 0.33]
+    bn.cpt(testEv1)[{'test1': 'true'}] = [0.13, 0.87]
+    bn.cpt(testEv2)[{'test2': 'false'}] = [0.99, 0.01]
+    bn.cpt(testEv2)[{'test2': 'true'}] = [0.09, 0.91]
+    bn.cpt(testEv3)[{'test1': 'false', 'test2': 'false'}] = [0.01, 0.99]
+    bn.cpt(testEv3)[{'test1': 'false', 'test2': 'true'}] = [0.7, 0.3]
+    bn.cpt(testEv3)[{'test1': 'true', 'test2': 'false'}] = [0.3, 0.7]
+    bn.cpt(testEv3)[{'test1': 'true', 'test2': 'true'}] = [0, 1]
+    return bn
+
+def print_ratios(combined):
+    '''print(combined.ie.posterior('aux'))
+    print(combined.casemodel.cases[0].area, combined.casemodel.cases[1].area, combined.casemodel.cases[2].area)'''
+    print("\t RATIOS IN AUX NODE \t RATIOS IN CASES")
+    print("\t", combined.ie.posterior('aux')[{'aux':'scn_1'}]/combined.ie.posterior('aux')[{'aux':'scn_2'}], "\t", combined.casemodel.cases[0].area / combined.casemodel.cases[1].area)
+    print("\t", combined.ie.posterior('aux')[{'aux':'scn_2'}]/combined.ie.posterior('aux')[{'aux':'scn_3'}], "\t", combined.casemodel.cases[1].area / combined.casemodel.cases[2].area)
+    print("\t", combined.ie.posterior('aux')[{'aux':'scn_3'}]/combined.ie.posterior('aux')[{'aux':'scn_1'}], "\t", combined.casemodel.cases[2].area / combined.casemodel.cases[0].area)
+    print("\n")
+
+
+
+
+def running_test_3():
+    imported = 0
+    bn = createBN_no_constraint_node()
+    combined = moja.Moja(bn)
+    cm_figure = cmFig.CaseModelFigure(combined.casemodel)
+    cm_figure.get_figure()
+
+    '''combined.add_evidence('test1', 'true')
+    cm_figure.get_figure()
+    print_ratios(combined)
+    cm_figure.show()'''
+
+    combined.add_evidence('testEv3', 'false')
+    cm_figure.get_figure()
+    print_ratios(combined)
+    cm_figure.show()
+
+    combined.add_evidence('testEv3', 'true')
+    cm_figure.get_figure()
+    print(combined.ie.posterior('aux'))
+    print(combined.casemodel.cases[0].area)
+    print(combined.casemodel.cases[1].area)
+    print(combined.casemodel.cases[2].area)
+    print_ratios(combined)
+    cm_figure.show()
+
+
+
+
+
 def running_test_1():
     imported = 0
     name_bn_imported = "none"
@@ -74,6 +161,7 @@ def running_test_1():
     ie.setEvidence({'vE': 1})  # setting VIRTUAL (soft) evidence to force the constraint node.
     initial = running.Running(bn, imported, ie)
 
+
     caseModel = initial.get_caseModel()
     total_ev_dict = initial.get_total_ev_dict()
     figure, full_case_model, base_y_pos = initial.get_params_figure()
@@ -83,6 +171,7 @@ def running_test_1():
     caseModel.add_evidence_scenario("vE", 1, ie, imported)
     caseModel.update_the_dict_with_priors(ie, imported)
     figure = caseModel.get_figure_stacked(figure, full_case_model, base_y_pos)
+    print(colored(ie.posterior('constraint'), "red"))
 
 
     evidence = 'testEv2'
@@ -93,7 +182,7 @@ def running_test_1():
     initial.decrease_y_base()
     new_figure = caseModel.get_figure_stacked(figure, full_case_model, initial.get_y_base())
     initial.set_figure(new_figure)
-    #print("testev2 0 ", colored(ie.posterior('constraint'), "red"))
+    print("testev2 0 ", colored(ie.posterior('constraint'), "red"))
     #print("evidence: ", caseModel.evidence)
 
 
@@ -102,8 +191,8 @@ def running_test_1():
     initial.decrease_y_base()
     new_figure = caseModel.get_figure_stacked(figure, full_case_model, initial.get_y_base())
     initial.set_figure(new_figure)
-    '''print("testev1 1 ", colored(ie.posterior('constraint'), "red"))
-    print("evidence: ", caseModel.evidence)'''
+    print("testev1 1 ", colored(ie.posterior('constraint'), "red"))
+    '''print("evidence: ", caseModel.evidence)'''
 
 
     caseModel.add_evidence_scenario('testEv3', 1, ie, 0)
@@ -149,6 +238,7 @@ def running_test_2():
     bn.cpt("vE")[{'constraint': 0}] = [1, 0]
     bn.cpt("vE")[{'constraint': 1}] = [1, 0.5]
     bn.cpt("vE")[{'constraint': 2}] = [1, 0.5]
+
 
     ie = gum.LazyPropagation(bn)
     ie.setEvidence({'vE': 1})  # setting VIRTUAL (soft) evidence to force the constraint node.
@@ -291,9 +381,12 @@ def running_test_2():
 
 
 ### start here ###
-test = 2
+test = 3
 if test == 1:
     running_test_1()
 
 if test == 2:
     running_test_2()
+
+if test == 3:
+    running_test_3()

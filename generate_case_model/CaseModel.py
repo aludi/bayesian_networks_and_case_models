@@ -3,7 +3,7 @@ from anytree import NodeMixin, Node, RenderTree, PreOrderIter
 import plotly.graph_objects as go
 import pyAgrum as gum
 import generate_case_model.Case as single_case
-from termcolor import colored
+#from termcolor import colored
 
 
 
@@ -25,6 +25,7 @@ class CaseModel:
 
     def add_case(self, case):
         self.cases.append(case)
+        print(self.cases)
 
     def add_scn_to_dict(self, node, scn):
         try:
@@ -68,7 +69,7 @@ class CaseModel:
         conditioned_area = 1
         print(prior_dict)
         for item in prior_dict:
-            if item != entry:# and 'scn' not in item:
+            if item != entry: # and 'scn' not in item:
                 conditioned_area = prior_dict[item] * conditioned_area
         return conditioned_area
 
