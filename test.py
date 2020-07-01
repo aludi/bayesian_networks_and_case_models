@@ -1,8 +1,7 @@
-import generate_case_model.Case as single_case
 import generate_case_model.CaseModel as case_model
 import generate_case_model.Prop as prop
 import generate_case_model.Running as running
-import generate_case_model.Moja as moja
+import generate_case_model.CMBN as cmbn
 import generate_case_model.CaseModelFigure as cmFig
 import unit_tests as unit_test
 
@@ -112,7 +111,7 @@ def case_model_step(combined, cm_figure, evidence, truth_value):
 
 def running_test_3():
     bn = createBN_no_constraint_node()
-    combined = moja.Moja(bn, ['true', 'false'])
+    combined = cmbn.CMBN(bn, ['true', 'false'])
     cm_figure = cmFig.CaseModelFigure(combined.casemodel)
     cm_figure.get_figure("", "")
     case_model_step(combined, cm_figure, 'testEv3', 'false')
@@ -145,7 +144,7 @@ def running_test_4():
     bn.cpt('flees_in_car')[{'murder_with_gun': 'no', 'scn1': 'yes'}] = [1, 0]
     bn.cpt('flees_in_car')[{'murder_with_gun': 'no', 'scn1': 'no'}] = [0.1, 0.9]
 
-    combined = moja.Moja(bn, ['yes', 'no'])
+    combined = cmbn.CMBN(bn, ['yes', 'no'])
     cm_figure = cmFig.CaseModelFigure(combined.casemodel)
     cm_figure.get_figure("", "")
 

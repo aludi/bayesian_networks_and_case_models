@@ -1,13 +1,12 @@
-import generate_case_model.Case as single_case
 import generate_case_model.CaseModel as case_model
-import generate_case_model.Moja_Case as moja_case
+import generate_case_model.Case as case
 
 import generate_case_model.Prop as prop
 import plotly.graph_objects as go
 import pyAgrum as gum
 
 
-class Moja:
+class CMBN:
 
     def __init__(self, bn, truth_values):
         self.truth_values = truth_values
@@ -106,15 +105,15 @@ class Moja:
                     case_width = p.get(i)
                     case_conditional_prior_dict = {scn : case_area}
                     case_evidence_dict = {}
-                    new_case = moja_case.Moja_Case(case_name, case_scenario, case_area, case_width,
+                    new_case = case.Case(case_name, case_scenario, case_area, case_width,
                                         case_conditional_prior_dict, case_evidence_dict)
                     new_case_list.append(new_case)
                 i.inc()
         self.casemodel.cases = new_case_list
 
     def print_cases(self):
-        for case in self.casemodel.cases:
-            print(case.name, case.area, case.conditional_prior_dict)
+        for one_case in self.casemodel.cases:
+            print(one_case.name, one_case.area, one_case.conditional_prior_dict)
 
 
     def implement_aux(self, bn):

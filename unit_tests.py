@@ -8,7 +8,8 @@ def check_ratios(combined):
         try:
             assert first == combined.casemodel.cases[i].area / combined.ie.posterior('aux')[{'aux':combined.get_scenario_names()[i]}]
         except AssertionError:
-            print('ratio between case model and bn is wrong')
+            print('ratio between case model and bn is wrong, D: ', first - combined.casemodel.cases[i].area / combined.ie.posterior('aux')[{'aux':combined.get_scenario_names()[i]}])
+            print(first,combined.casemodel.cases[i].area / combined.ie.posterior('aux')[{'aux':combined.get_scenario_names()[i]}])
         i = i + 1
 
 

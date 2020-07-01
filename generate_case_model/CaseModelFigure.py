@@ -5,7 +5,7 @@ import math
 
 import pyAgrum as gum
 import generate_case_model.CaseModel as case_model
-import generate_case_model.Moja_Case as moja_case
+import generate_case_model.Case as moja_case
 
 
 class CaseModelFigure:

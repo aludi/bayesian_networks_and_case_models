@@ -1,4 +1,3 @@
-import generate_case_model.Case as single_case
 import generate_case_model.CaseModel as case_model
 import generate_case_model.Prop as prop
 import plotly.graph_objects as go

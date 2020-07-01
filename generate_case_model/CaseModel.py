@@ -2,7 +2,6 @@ import anytree
 from anytree import NodeMixin, Node, RenderTree, PreOrderIter
 import plotly.graph_objects as go
 import pyAgrum as gum
-import generate_case_model.Case as single_case
 #from termcolor import colored
 
 

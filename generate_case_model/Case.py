@@ -1,113 +1,58 @@
+import generate_case_model.CaseModel as case_model
+import generate_case_model.Prop as prop
+import generate_case_model.Running as running
+import pyAgrum as gum
+
 class Case:
-    '''
-    def __init__(self, list_props, value, dict_priors, leaf, scn):
-        self.list_case = list_props
-        self.val = value
-        self.dict_priors = dict_priors
-        self.dict_current_posterior = dict_priors
-        self.evidence_added = None
-        self.base_leaf = leaf
-        self.corresponding_scenario = scn
-    '''
-
-    def __init__(self, name, ev_dict_case, scn_area, total_area_case, all_ev, scenario_name):
+    def __init__(self, name, scn, area, width, conditional_prior_dict, evidence_dict):
         self.name = name
-        self.all_ev = all_ev
-        self.dict_evidence_value = ev_dict_case
-        self.scn_width = scn_area
-        self.scenario = scenario_name
-        self.area_case = total_area_case
-        self.list_known_evidence = []
-        self.prior_dict = {}
-        self.event_list = []
-        self.prior_scenario = 1
+        self.scenario = scn
+        self.area = area
+        self.width = width
+        self.conditional_prior_dict = conditional_prior_dict
+        self.evidence_dict = evidence_dict
+        self.implications_list = [scn]
 
-    def add_prior_dict(self, new_prior_dict):
-        self.prior_dict = new_prior_dict
-
-    def improve_name_list(self, entry, truth_value, flag):
-        if flag == "changing evidence":
-            if truth_value == 1:
-                self.list_known_evidence.remove("!"+entry)
-            elif truth_value == 0:
-                self.list_known_evidence.remove(entry)
-
-        if truth_value == 0:
-            list_add = "!"+entry
+    def update_conditional_prior_dict(self, evidence, prior_value, add_or_change):
+        if add_or_change == 'add':
+            self.conditional_prior_dict[evidence] = prior_value
         else:
-            list_add = entry
-        self.list_known_evidence.append(list_add)
+            self.conditional_prior_dict[evidence] = 1 - self.conditional_prior_dict[evidence]   # negation (cheating a bit. this only works for binary evidence nodes)
 
-    def add_to_event_list(self, event, value_string):
+    def calculate_conditioned_area(self):
+        base = 1
+        for item in self.conditional_prior_dict:
+            if 'scn' not in item:      # don't doubly condition on prior of scenario
+                base = base * self.conditional_prior_dict[item]
+        return base
 
-        if value_string == "neg":
-            string_to_add = "!"+event
+    def get_width(self):
+        return self.width
+
+    def get_height(self):
+        return self.area/self.width
+
+    def get_formatted_string(self, truth_val, string):
+        if truth_val == 'false':
+            return "! " + string
         else:
-            string_to_add = event
-        if string_to_add not in self.event_list:
-            self.event_list.append(string_to_add)
+            return "" + string
 
 
-    def print_case_scn(self):
-        print(self.scenario)
+    def get_evidence_in_case(self):
+        string = str(self.scenario)
+        for item in self.evidence_dict:
+            string = string + self.get_formatted_string(self.evidence_dict[item], item)
+        return string
 
-    def get_case_scenario(self):
-        return self.scenario
+    def get_events_in_case(self):
+        return self.implications_list
 
-    def get_case_width(self):
-        return self.scn_width
-
-    def get_case_area(self):
-        return self.area_case
-
-    def set_case_area(self, case_area_val):
-        self.area_case = case_area_val
-
-    def update_dict(self, dict_new):
-        self.all_ev = dict_new
-        self.dict_evidence_value = dict_new
-        return
-
-    def collect_known_evidence(self):
-        self.list_known_evidence = [self.scenario]
-        dict_of_evidence = self.all_ev
-        for key in dict_of_evidence:
-            if dict_of_evidence[key] == 1:
-                self.list_known_evidence.append(key)
-            if dict_of_evidence[key] == 0:
-                self.list_known_evidence.append("!"+key)
-        for item in self.event_list:
-            self.list_known_evidence.append(item)
-
-    def return_known_events(self):
-        new_list = [self.scenario]
-        new_list.extend(self.event_list)
-        return new_list
-
-    def check_with_evidence(self, evidence_from_case_model):
-        for key in evidence_from_case_model:
-            if "scn" in key or "constraint" in key or "vE" in key:
-                continue
-            if self.all_ev[key] != evidence_from_case_model[key]:
-                #print(key, self.all_ev[key], evidence_from_case_model[key])
-                return False
-        return True
+    def update_event_nodes(self, event_node, truth_value):
+        new_event = self.get_formatted_string(truth_value, event_node)
+        for item in self.implications_list:
+            if event_node in item:  # if there used to be a negation or the item is already on the list
+                self.implications_list.remove(item)
+        self.implications_list.append(new_event)
 
 
-
-    # case width * case height = case area
-    # this must always be true
-    # width of a case must always corresponds to the width of the scenario
-    # case area is determined by ?? -> impact of evidence on the case. but this is also determined
-    # so we can easily find case height always
-    def get_case_height(self):
-        return self.area_case/self.scn_width
-
-    def get_first_prior_scenario(self):
-        return self.prior_scenario
-
-    def set_prior_scenario(self, num):
-        self.prior_scenario = num
-
-    #def get_case_prop_areas_dict(self):
-    #    return self.dict_area_value
