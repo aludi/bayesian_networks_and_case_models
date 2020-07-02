@@ -27,52 +27,31 @@ class CMBN:
         self.ie = ie
         self.global_evidence_dict = {'constraint': truth_values[0]}
         ie.setEvidence(self.global_evidence_dict)
-        #print(ie.posterior('weapon_found'))
         self.create_first_cases()
-        self.print_cases()
 
     def add_evidence(self, evidence, truth_value):
-        # add the new evidence to the evidence that we already have
-
         add_or_change = 'add'
-        print(self.ie.posterior(evidence))
         prior_evidence = self.ie.posterior(evidence)[{evidence: truth_value}]  # not actually a true prior, conditioned on other pieces of evidence that are already added
         if evidence in self.global_evidence_dict.keys():
             add_or_change = 'change'
             # we're updating our evidence.
-
-
         self.global_evidence_dict[evidence] = truth_value
-        # find prior of evidence
-        '''print(self.ie.posterior('aux'))
-        print(self.ie.posterior(evidence))  # problem!! -> switch evidence around'''
-        #print(self.ie.posterior(evidence)[{evidence:'false'}], self.ie.posterior(evidence)[{evidence:'true'}])
-
-
         self.ie.setEvidence(self.global_evidence_dict)
-        '''print("aux after new evidence", self.ie.posterior('aux'))'''
-
         for case in self.casemodel.cases:
             case.update_conditional_prior_dict(evidence, prior_evidence, add_or_change)
             conditioned_case_area = case.calculate_conditioned_area()
             posterior_scn = self.ie.posterior('aux')[{'aux':case.scenario}]
             case.evidence_dict[evidence] = truth_value
-            '''print("posterior scenario  ", posterior_scn)
-            print("posterior case  ", conditioned_case_area * posterior_scn)'''
             case.area = conditioned_case_area * posterior_scn
             self.deal_with_event_nodes(case, evidence)
 
 
-        #print(self.ie.posterior('aux'))
     def deal_with_event_nodes(self, case, evidence):
         event_nodes_scn = self.check_event_nodes_in_scenario(case.scenario)
         if len(event_nodes_scn) > 0:
             for event_node in event_nodes_scn:  # only do this for direct parents of node. Bad assumption
                 if event_node in self.bn.parents(evidence):
                     name_node = self.bn.variable(event_node).name()
-                    '''print(name_node)
-                    print(self.ie.posterior(name_node))
-                    print("IN HERE", self.ie.posterior(name_node)[{name_node : 'false'}], self.ie.posterior(name_node)[{name_node : 'true'}])'''
                     if self.ie.posterior(event_node)[{name_node: self.truth_values[1]}] > self.ie.posterior(event_node)[
                         {name_node: self.truth_values[0]}]:  # truth_values[0]: yes/true
                         case.update_event_nodes(name_node, self.truth_values[1])
@@ -86,9 +65,6 @@ class CMBN:
 
     def get_scenario_names(self):
         return self.scenario_nodes
-
-
-
 
     def create_first_cases(self):
         new_case_list = []
@@ -122,11 +98,7 @@ class CMBN:
         i_aux.setFirst()
         while (not i_aux.end()):
             dict_of_row = i_aux.todict(withLabels=True)
-            print(dict_of_row)
-
             values = list(dict_of_row.values())
-            print(values)
-
             num_true = values.count(self.truth_values[0])
             if num_true < 1 or num_true > 1:  # no scenario is true, aux is NA
                 if dict_of_row['aux'] == "NA":
@@ -182,7 +154,7 @@ class CMBN:
         self.implement_aux(bn)
         self.implement_constraint(bn)
 
-    def restructure_bn_fenton(self, bn):
+    def restructure_bn_fenton(self, bn):        # could be streamlined
         bn.erase('constraint')
         list_of_scn_node_names = ["NA"]
         exhaustivity_check = 0
@@ -209,7 +181,4 @@ class CMBN:
         bn.addArc('aux', 'constraint')
         self.implement_aux(bn)
         self.implement_constraint(bn)
-
-
-
 

@@ -145,28 +145,29 @@ def running_test_4():
     bn.cpt('flees_in_car')[{'murder_with_gun': 'no', 'scn1': 'no'}] = [0.1, 0.9]
 
     combined = cmbn.CMBN(bn, ['yes', 'no'])
+
     cm_figure = cmFig.CaseModelFigure(combined.casemodel)
     cm_figure.get_figure("", "")
-
     case_model_step(combined, cm_figure, 'body_found', 'yes')
     case_model_step(combined, cm_figure, 'signs_of_violence', 'yes')
     case_model_step(combined, cm_figure, 'weapon_found', 'yes')
-    cm_figure.show()
+
+
     case_model_step(combined, cm_figure, 'phonecall_with_friend', 'yes')
     case_model_step(combined, cm_figure, 'testimony_kidnapping', 'yes')
     case_model_step(combined, cm_figure, 'testimony_amnesia', 'yes')
-    cm_figure.show()
+
     case_model_step(combined, cm_figure, 'car_with_bloodstains_found', 'yes')
     case_model_step(combined, cm_figure, 'testimony_conflict', 'yes')
     case_model_step(combined, cm_figure, 'no_concrete_evidence_for_kidnapping', 'yes')
-    cm_figure.show()
+
     case_model_step(combined, cm_figure, 'medical_investigation_found_no_amnesia', 'yes')
     case_model_step(combined, cm_figure, 'phonecall_parents', 'yes')
     cm_figure.show()
 
 
 ### start here ###
-test = 4
+test = 3
 if test == 3:
     running_test_3()
 
