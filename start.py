@@ -1,14 +1,10 @@
 import generate_case_model.CaseModel as case_model
-import generate_case_model.Prop as prop
-import generate_case_model.Running as running
 import generate_case_model.CMBN as cmbn
 import generate_case_model.CaseModelFigure as cmFig
 import unit_tests as unit_test
 
 import pyAgrum as gum
 #from termcolor import colored
-
-
 
 def createBN():
     bn = gum.BayesNet("test")
